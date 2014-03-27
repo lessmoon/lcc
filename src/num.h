@@ -17,6 +17,7 @@ class num:public token{
         const num_t value;
         num(const num_t value)
         :token(tag::NUM),value(value){}
+        virtual ~num(){}
     private:
         
 };

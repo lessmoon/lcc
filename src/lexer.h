@@ -7,6 +7,7 @@
 #include"num.h"
 #include"tag.h"
 #include"type.h"
+#include"str.h"
 
 #include<map>
 #include<string>

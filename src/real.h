@@ -17,7 +17,7 @@ class real:public token{
         const real_t value;
         real(const real_t value)
         :token(tag::REAL),value(value){}
- 
+        virtual ~real(){} 
     private:
     };
 };//namespace lexer

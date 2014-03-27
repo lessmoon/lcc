@@ -1,7 +1,7 @@
 #include"lexer.h"
 
 #define CH_IS(C1,C2) ((C1)==(C2))
-
+#define CH_IS_NOT(C1,C2) (!CH_IS(C1,C2))
 namespace lexer{
     const int MAX_LEXME_STR   =   0x100;
 };
@@ -51,12 +51,24 @@ namespace lexer{
         return this -> readch(c);
     }
 
+/*
+ * NOTE: this function scan the input buffer and return the token
+ * And because of the C++ no-auto do the clean job,So we should delete 
+ * the token(it is in the heap) manually.But I am working on the memory
+ * manager.
+ * TODO:create another token manager and do the collection job
+ */
     lexer::token_ptr lexer::scan()
     {
         string buf;
         num_t num_v;
         real_t real_v;
+        word_ptr w;
+        tab_iter iter;
+        token_ptr tok;
         buf.reserve(MAX_LEXME_STR);
+                
+
         for(;;readch()){
             if(peek == ' ' || peek == '\t')
                 continue;
@@ -65,27 +77,52 @@ namespace lexer{
             else 
                 break;
         }
-        
         if(is_digit(peek)){
             do{
                 num_v = num_v*10 + peek - '0';
             }while(is_digit(peek));
             return new num(num_v);
         }
-
         if(is_alpha(peek)||CH_IS(peek,'_')){
             do{
                 buf += peek;
                 readch();
             }while(is_alpha(peek)||is_digit(peek)||CH_IS(peek,'_'));
-            // TODO this -> find(reserve);
-            // TODO Return new token();
+            iter = words.find(buf);
+            if(iter != words.end())//If this word is in the table
+                return iter -> second;
+            w = new word(buf,tag::ID);//Or we should create a new word
+            this -> reserve(w);//put it into the table.
+            return w;
+        }
+        if(CH_IS(peek,'\"')){
+            loop:
+            readch();
+            while(CH_IS_NOT(peek,'\"')){
+                if(CH_IS(peek,'\\')){
+                    readch();
+                    switch(peek){
+                    case '\\':case '\"':case '\'':
+                        buf += peek;
+                        break;
+                    default:
+                        ;//TODO error now.
+                    }
+                }
+                else
+                    buf += peek;
+                readch();
+            }
+            if(CH_IS(peek,'\"'))//string cat.
+                goto loop;
+            else
+                return new str(buf);
         }
         switch(peek){
             case '>':
                 if(check('='))
                     return new token(tag::GE);
-                else 
+                else
                     return new token('>');
             case '<':
                 if(check('='))
@@ -115,7 +152,8 @@ namespace lexer{
             default:
            ;
         }
-        
+        tok = new token(peek);peek = ' ';
+        return tok;
     }
 
     void lexer::readch()
