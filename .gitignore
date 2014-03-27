@@ -1,0 +1,10 @@
+!*.cpp
+!*.h
+!*.hpp
+!*.c
+*~
+*.out
+*.[ao]
+*tmp
+*.swp
+*.bak
