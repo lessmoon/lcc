@@ -5,6 +5,7 @@
 #include"tag.h"
 
 #include<string>
+#include"test.h"
 
 namespace lexer{
 class num:public token{
@@ -18,6 +19,9 @@ class num:public token{
         num(const num_t value)
         :token(tag::NUM),value(value){}
         virtual ~num(){}
+        string toString(){
+            return ::toString(value);
+        }
     private:
         
 };

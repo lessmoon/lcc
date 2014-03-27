@@ -16,6 +16,10 @@ namespace lexer{
             str(const str_t&value)
             :token(tag::STR),value(value){}
             virtual ~str(){}
+            std::string toString()
+            {
+                return value;
+            }
     };
 };//namespace lexer
 

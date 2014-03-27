@@ -3,6 +3,7 @@
 
 #define CH_IS(C1,C2) ((C1)==(C2))
 #define CH_IS_NOT(C1,C2) (!CH_IS(C1,C2))
+#define HEX_CONV(C) ((C>='0'&&C<='9')?(C-'0'):((C>='a'&&C<='f')?(C-'a'+0xa):(C-'A'+0xa)))
 namespace lexer{
     const int MAX_LEXME_STR   =   0x100;
 };
@@ -18,6 +19,17 @@ namespace {
         return (c >= 'A' && c <= 'Z')
                 || (c >= 'a' && c <= 'z');
     }
+    
+    bool is_hex(const char c)
+    {
+        return is_digit(c)|| (c >= 'a' && c <= 'f');
+    }
+    
+    bool is_oct(const char c)
+    {
+        return (c >= '0' && c <= '7');
+    }
+    
 };
 
 namespace lexer{
@@ -61,12 +73,13 @@ namespace lexer{
  */
     lexer::token_ptr lexer::scan()
     {
-        string buf;
-        num_t num_v;
-        real_t real_v;
-        word_ptr w;
+        string buf = "";
+        num_t num_v = 0;
+        real_t real_v = 0;
+        word_ptr w = NULL;
         tab_iter iter;
-        token_ptr tok;
+        token_ptr tok = NULL;
+        char c;
         buf.reserve(MAX_LEXME_STR);
 
         for(;;readch()){
@@ -124,6 +137,38 @@ namespace lexer{
                     switch(peek){
                     case '\\':case '\"':case '\'':
                         buf += peek;
+                        break;
+                    case 'n':
+                        buf += '\n';
+                        break;
+                    case 't':
+                        buf += '\t';
+                        break;
+                    case 'a':
+                        buf += '\a';
+                        break;
+                    case 'r':
+                        buf += '\r';
+                        break;
+                    case '0':
+                        buf += '\0';
+                        break;
+                    case 'b':
+                        buf += '\b';
+                        break;
+                    case 'v':
+                        buf += '\v';
+                        break;
+                    case 'x'://it is the two hex digits
+                        readch();
+                        if(!is_hex(peek))
+                            ;//TODO the error check
+                        c = HEX_CONV(peek)<<4;
+                        readch();
+                        if(!is_hex(peek))
+                            ;//TODO the error check
+                        c |= HEX_CONV(peek);
+                        buf += c;
                         break;
                     default:
                         ;//TODO error now.

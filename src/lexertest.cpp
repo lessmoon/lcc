@@ -12,6 +12,6 @@ int main()
     token*p;
 
     while(p = lex.scan()){
-        cout<<p->tag<<endl;
+            cout<<p->tag<<":~:"<<p->toString()<<endl;
     }
 }

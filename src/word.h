@@ -4,6 +4,7 @@
 
 #include"token.h"
 #include"tag.h"
+#include"test.h"
 
 namespace lexer{
 class word:public token{
@@ -14,6 +15,11 @@ class word:public token{
     word(const std::string&lexme,const int tag)
     :token(tag),lexme(lexme){}
     virtual ~word(){}
+    virtual std::string toString()
+    {
+        return ::toString(lexme);
+    }
+
     public:
     std::string lexme;
 };
