@@ -8,3 +8,9 @@
 *tmp
 *.swp
 *.bak
+*.slo
+*.lo
+*.so
+*.dylib
+*.lai
+*.la
