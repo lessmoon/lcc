@@ -3,7 +3,7 @@
 #define CH_IS(C1,C2) ((C1)==(C2))
 
 namespace lexer{
-    const int MAX_LEXME_STR   =   0x255;
+    const int MAX_LEXME_STR   =   0x100;
 };
 
 namespace {
@@ -22,20 +22,41 @@ namespace {
 namespace lexer{
 
     lexer::lexer()
-    :peek(' '),lineno(0){}
-    std::string buf;
-    buf.reserve(MAX_LEXME_STR);    
+    :peek(' '),lineno(0)
+    {
+        this -> reserve(true_);this -> reserve(false_);
+        this -> reserve(new word("if",tag::IF));
+        this -> reserve(new word("else",tag::ELSE));
+        this -> reserve(new word("while",tag::WHILE));
+        this -> reserve(new word("for",tag::FOR));
+        this -> reserve(new word("break",tag::BREAK));
+        this -> reserve(symbols::int_);this -> reserve(symbols::float_);
+        this -> reserve(symbols::char_);this -> reserve(symbols::bool_);
+    }
+
+    lexer::~lexer()
+    {
+        for(tab_iter iter = words.begin();
+            iter != words.end();
+            iter++)
+            delete iter -> second;
+        words.clear();
+    }    
+
+    //stdz::string buf;
+   // buf.reserve(MAX_LEXME_STR);
 
     bool lexer::check(const elem_t c)
     {
-        readch();
-        if(c != peek)
-            return false;
-        return true;
+        return this -> readch(c);
     }
 
-    token_ptr lexer:: scan()
+    lexer::token_ptr lexer::scan()
     {
+        string buf;
+        num_t num_v;
+        real_t real_v;
+        buf.reserve(MAX_LEXME_STR);
         for(;;readch()){
             if(peek == ' ' || peek == '\t')
                 continue;
@@ -47,9 +68,9 @@ namespace lexer{
         
         if(is_digit(peek)){
             do{
-                num = num*10 + peek - '0';
+                num_v = num_v*10 + peek - '0';
             }while(is_digit(peek));
-            //TODO Return new number();
+            return new num(num_v);
         }
 
         if(is_alpha(peek)||CH_IS(peek,'_')){
@@ -81,8 +102,18 @@ namespace lexer{
                     return new token(tag::NE);
                 else
                     return new token('!');
+            case '+':
+                if(check('+'))
+                    return new token(tag::INC);
+                else
+                    return new token('+');
+            case '-':
+                if(check('-'))
+                    return new token(tag::DEC);
+                else
+                    return new token('-');
             default:
-                ;
+           ;
         }
         
     }
@@ -99,5 +130,11 @@ namespace lexer{
             return false;
         peek = ' ';
         return true;
+    }
+    
+    void lexer::reserve(word_ptr w)
+    {
+        words.insert(pair(w -> lexme,w));
+        /*Put the word token into the table*/
     }
 };//namespace lexer
