@@ -1,4 +1,5 @@
 #include"lexer.h"
+#include<cstdio>
 
 #define CH_IS(C1,C2) ((C1)==(C2))
 #define CH_IS_NOT(C1,C2) (!CH_IS(C1,C2))
@@ -11,7 +12,7 @@ namespace {
     {
         return (c >= '0' && c <= '9');
     }
-    
+
     bool is_alpha(const char c)
     {
         return (c >= 'A' && c <= 'Z')
@@ -41,7 +42,7 @@ namespace lexer{
             iter++)
             delete iter -> second;
         words.clear();
-    }    
+    }
 
     //stdz::string buf;
    // buf.reserve(MAX_LEXME_STR);
@@ -53,7 +54,7 @@ namespace lexer{
 
 /*
  * NOTE: this function scan the input buffer and return the token
- * And because of the C++ no-auto do the clean job,So we should delete 
+ * And because of the C++ no-auto do the clean job,So we should delete
  * the token(it is in the heap) manually.But I am working on the memory
  * manager.
  * TODO:create another token manager and do the collection job
@@ -67,19 +68,38 @@ namespace lexer{
         tab_iter iter;
         token_ptr tok;
         buf.reserve(MAX_LEXME_STR);
-                
 
         for(;;readch()){
-            if(peek == ' ' || peek == '\t')
+            if(CH_IS(peek,' ') || CH_IS(peek , '\t'))
                 continue;
-            else if(peek == '\n')
+            else if(CH_IS(peek , '\n'))
                 lineno++;
-            else 
+            else if(CH_IS(peek , '/'))
+                if(check('*')){//for the block comment
+                    readch();//Just because the peek is ' ' now...
+                    do{
+                        while(CH_IS_NOT(peek,'*')){
+                            if(peek == '\n')
+                                lineno++;
+                            readch();
+                        }
+                        readch();
+                    }while(CH_IS_NOT(peek,'/'));
+                }
+                else if(CH_IS(peek,'/')){//for the line comment
+                    while(!check('\n'));
+                    lineno++;
+                }
+                else
+                    return new token('/');
+            else
                 break;
         }
+
         if(is_digit(peek)){
             do{
                 num_v = num_v*10 + peek - '0';
+                readch();
             }while(is_digit(peek));
             return new num(num_v);
         }
@@ -113,7 +133,7 @@ namespace lexer{
                     buf += peek;
                 readch();
             }
-            if(CH_IS(peek,'\"'))//string cat.
+            if(check('\"'))//string cat.
                 goto loop;
             else
                 return new str(buf);
@@ -149,6 +169,17 @@ namespace lexer{
                     return new token(tag::DEC);
                 else
                     return new token('-');
+            case '|':
+                if(check('|'))
+                    return new token(tag::OR);
+                else
+                    return new token('|');
+            case '&':
+                if(check('&'))
+                    return new token(tag::AND);
+                else
+                    return new token('&');
+            //case '':
             default:
            ;
         }
@@ -158,18 +189,18 @@ namespace lexer{
 
     void lexer::readch()
     {
-        //peek = getchar();
+        peek = getchar_unlocked();
     }
- 
+
     bool lexer::readch(const char c)
     {
         this -> readch();
-        if(CH_IS(peek,c))
+        if(CH_IS_NOT(peek,c))
             return false;
         peek = ' ';
         return true;
     }
-    
+
     void lexer::reserve(word_ptr w)
     {
         words.insert(pair(w -> lexme,w));
