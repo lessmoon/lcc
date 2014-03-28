@@ -3,13 +3,14 @@
 
 #include"token.h"
 #include"tag.h"
+#include"test.h"
 
 #include<string>
 
 namespace lexer{
 class real:public token{
     public:
-        typedef float real_t;
+        typedef double real_t;
         typedef real  self;
         typedef self* self_ptr;
         typedef std::string string;
@@ -18,6 +19,9 @@ class real:public token{
         real(const real_t value)
         :token(tag::REAL),value(value){}
         virtual ~real(){} 
+        std::string toString(){
+            return ::toString(value);
+        }
     private:
     };
 };//namespace lexer

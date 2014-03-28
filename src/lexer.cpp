@@ -4,6 +4,10 @@
 #define CH_IS(C1,C2) ((C1)==(C2))
 #define CH_IS_NOT(C1,C2) (!CH_IS(C1,C2))
 #define HEX_CONV(C) ((C>='0'&&C<='9')?(C-'0'):((C>='a'&&C<='f')?(C-'a'+0xa):(C-'A'+0xa)))
+#define OCT_CONV(C) ((C) - '0')
+#define DO_OCT_CONV(C,peek) {C <<= 3; \
+                             C |= OCT_CONV(peek);}
+
 namespace lexer{
     const int MAX_LEXME_STR   =   0x100;
 };
@@ -29,7 +33,6 @@ namespace {
     {
         return (c >= '0' && c <= '7');
     }
-    
 };
 
 namespace lexer{
@@ -76,6 +79,7 @@ namespace lexer{
         string buf = "";
         num_t num_v = 0;
         real_t real_v = 0;
+        real_t real_t = 0.1;
         word_ptr w = NULL;
         tab_iter iter;
         token_ptr tok = NULL;
@@ -114,7 +118,16 @@ namespace lexer{
                 num_v = num_v*10 + peek - '0';
                 readch();
             }while(is_digit(peek));
-            return new num(num_v);
+            if(CH_IS_NOT(peek,'.'))
+                return new num(num_v);
+            readch();
+            while(is_digit(peek)){
+                real_v += real_t*(peek - '0');
+                real_t /= 10;
+                readch();
+            }
+            //TODO if has exponent
+            return new real(num_v + real_v);
         }
         if(is_alpha(peek)||CH_IS(peek,'_')){
             do{
@@ -131,7 +144,9 @@ namespace lexer{
         if(CH_IS(peek,'\"')){
             loop:
             readch();
+            //next:
             while(CH_IS_NOT(peek,'\"')){
+                c = 0;
                 if(CH_IS(peek,'\\')){
                     readch();
                     switch(peek){
@@ -150,9 +165,10 @@ namespace lexer{
                     case 'r':
                         buf += '\r';
                         break;
-                    case '0':
-                        buf += '\0';
-                        break;
+                    /*case '0':
+                        /**
+                        buf += '\0';*/
+                       // break;
                     case 'b':
                         buf += '\b';
                         break;
@@ -171,11 +187,32 @@ namespace lexer{
                         buf += c;
                         break;
                     default:
-                        ;//TODO error now.
+                        if(is_oct(peek)){
+                            do{
+                                c = OCT_CONV(peek);
+                                readch();
+                                if(!is_oct(peek))
+                                    break;
+                                DO_OCT_CONV(c,peek);
+                                readch();
+                                if(!is_oct(peek))
+                                    break;
+                                DO_OCT_CONV(c,peek);
+                            }while(false);
+                            buf += c;
+                            //means goto gate;
+                        }else{
+                            buf += '\\';
+                          /*TODO *MAYBE* it should be an error here.
+                           *     Will check it in the C Gramma Guide.
+                           */
+                            continue;//means goto next
+                        }
                     }
                 }
                 else
                     buf += peek;
+                //gate:
                 readch();
             }
             if(check('\"'))//string cat.
