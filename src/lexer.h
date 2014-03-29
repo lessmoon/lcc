@@ -9,6 +9,7 @@
 #include"type.h"
 #include"str.h"
 #include"iol.h"
+#include"token_storage.h"
 
 #include<map>
 #include<string>
@@ -30,6 +31,8 @@ namespace lexer
             typedef w_table::iterator          tab_iter; 
             typedef system::iol                iol;
             typedef iol*                       iol_ptr;
+            typedef token_storage              tok_st;
+            typedef tok_st*                    tok_st_ptr;
         public:
             elem_t  peek;
             int     lineno;
@@ -45,6 +48,12 @@ namespace lexer
             void readch();
             void reserve(word_ptr word);
             bool readch(const elem_t c);
+            token_ptr store(token_ptr tpr)
+            {
+                return this -> storage.push(tpr);
+            }
+        private:
+            tok_st storage;
             w_table words;
       };
 };

@@ -1,4 +1,4 @@
-OBJS = lexer.o reserved.o lexertest.o kb_io.o
+OBJS = lexer.o reserved.o lexertest.o kb_io.o token_storage.o
 
 CPPC = g++ -c
 
@@ -11,8 +11,9 @@ TAR = test
 all:$(OBJS)
 	$(LD) $(OBJS) -o $(TAR)
 
-lexer.o:lexer.cpp reserved.o lexer.h real.h num.h tag.h type.h\
-         word.h lexer.h tag.h type.h str.h token.h iol.h
+lexer.o:lexer.cpp reserved.o token_storage.o lexer.h real.h num.h\
+        tag.h type.h\
+        word.h lexer.h tag.h type.h str.h token.h iol.h
 	$(CPPC) $(CPPFLAGS) lexer.cpp
 
 reserved.o:reserved.cpp type.h word.h
@@ -23,6 +24,9 @@ kb_io.o:kb_io.cpp kb_io.h iol.h
 
 lexertest.o:lexertest.cpp lexer.o reserved.o kb_io.o
 	$(CPPC) $(CPPFLAGS) lexertest.cpp
+
+token_storage.o:token_storage.cpp token_storage.h token.h
+	$(CPPC) $(CPPFLAGS) token_storage.cpp
 
 clean:
 	-rm $(OBJS) $(TAR)

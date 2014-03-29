@@ -57,6 +57,7 @@ namespace lexer{
             iter++)
             delete iter -> second;
         words.clear();
+        storage.clear();
     }
 
     //stdz::string buf;
@@ -119,7 +120,7 @@ namespace lexer{
                 readch();
             }while(is_digit(peek));
             if(CH_IS_NOT(peek,'.'))
-                return new num(num_v);
+                return store(new num(num_v));
             readch();
             while(is_digit(peek)){
                 real_v += real_t*(peek - '0');
@@ -127,7 +128,7 @@ namespace lexer{
                 readch();
             }
             //TODO if has exponent
-            return new real(num_v + real_v);
+            return store(new real(num_v + real_v));
         }
         if(is_alpha(peek)||CH_IS(peek,'_')){
             do{
@@ -219,55 +220,55 @@ namespace lexer{
             if(check('\"'))//string cat.
                 goto loop;
             else
-                return new str(buf);
+                return store(new str(buf));
         }
         switch(peek){
             case '>':
                 if(check('='))
-                    return new token(tag::GE);
+                    return store(new token(tag::GE));
                 else
-                    return new token('>');
+                    return store(new token('>'));
             case '<':
                 if(check('='))
-                    return new token(tag::LE);
+                    return store(new token(tag::LE));
                 else
-                    return new token('<');
+                    return store(new token('<'));
             case '=':
                 if(check('='))
-                    return new token(tag::EQ);
+                    return store(new token(tag::EQ));
                 else
-                    return new token('=');
+                    return store(new token('='));
             case '!':
                 if(check('='))
-                    return new token(tag::NE);
+                    return store(new token(tag::NE));
                 else
-                    return new token('!');
+                    return store(new token('!'));
             case '+':
                 if(check('+'))
-                    return new token(tag::INC);
+                    return store(new token(tag::INC));
                 else
-                    return new token('+');
+                    return store(new token('+'));
             case '-':
                 if(check('-'))
-                    return new token(tag::DEC);
+                    return store(new token(tag::DEC));
                 else
-                    return new token('-');
+                    return store(new token('-'));
             case '|':
                 if(check('|'))
-                    return new token(tag::OR);
+                    return store(new token(tag::OR));
                 else
-                    return new token('|');
+                    return store(new token('|'));
             case '&':
                 if(check('&'))
-                    return new token(tag::AND);
+                    return store(new token(tag::AND));
                 else
-                    return new token('&');
+                    return store(new token('&'));
             //case '':
             default:
            ;
         }
         tok = new token(peek);peek = ' ';
-        return tok;
+        return store(tok);
     }
 
     void lexer::readch()
