@@ -20,7 +20,7 @@ namespace system{
         bool is_open()const;
     public:
         elem_t readch();
-        elem_t readline();
+        string readline();
         void   close();
         bool   is_end()const;
         void   unread(const elem_t);
