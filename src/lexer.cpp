@@ -13,23 +13,23 @@ namespace lexer{
 };
 
 namespace {
-    bool is_digit(const char c)
+    inline bool is_digit(const char c)
     {
         return (c >= '0' && c <= '9');
     }
 
-    bool is_alpha(const char c)
+    inline bool is_alpha(const char c)
     {
         return (c >= 'A' && c <= 'Z')
                 || (c >= 'a' && c <= 'z');
     }
     
-    bool is_hex(const char c)
+    inline bool is_hex(const char c)
     {
         return is_digit(c)|| (c >= 'a' && c <= 'f');
     }
     
-    bool is_oct(const char c)
+    inline bool is_oct(const char c)
     {
         return (c >= '0' && c <= '7');
     }
@@ -37,8 +37,8 @@ namespace {
 
 namespace lexer{
 
-    lexer::lexer()
-    :peek(' '),lineno(0)
+    lexer::lexer(iol_ptr sys_io)
+    :peek(' '),lineno(0),sys_io(sys_io)
     {
         this -> reserve(true_);this -> reserve(false_);
         this -> reserve(new word("if",tag::IF));
@@ -144,7 +144,7 @@ namespace lexer{
         if(CH_IS(peek,'\"')){
             loop:
             readch();
-            //next:
+            next:
             while(CH_IS_NOT(peek,'\"')){
                 c = 0;
                 if(CH_IS(peek,'\\')){
@@ -192,13 +192,14 @@ namespace lexer{
                                 c = OCT_CONV(peek);
                                 readch();
                                 if(!is_oct(peek))
-                                    break;
+                                    goto next;
                                 DO_OCT_CONV(c,peek);
                                 readch();
                                 if(!is_oct(peek))
-                                    break;
+                                    goto next;
                                 DO_OCT_CONV(c,peek);
                             }while(false);
+                            dest:
                             buf += c;
                             //means goto gate;
                         }else{
@@ -212,7 +213,7 @@ namespace lexer{
                 }
                 else
                     buf += peek;
-                //gate:
+                gate:
                 readch();
             }
             if(check('\"'))//string cat.
@@ -271,7 +272,7 @@ namespace lexer{
 
     void lexer::readch()
     {
-        peek = getchar_unlocked();
+        peek = sys_io -> readch();
     }
 
     bool lexer::readch(const char c)
