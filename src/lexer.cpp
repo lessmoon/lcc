@@ -37,8 +37,10 @@ namespace {
 
 namespace lexer{
 
+    int lexer::lineno = 0;
+    
     lexer::lexer(iol_ptr sys_io)
-    :peek(' '),lineno(0),sys_io(sys_io)
+    :peek(' '),sys_io(sys_io)
     {
         this -> reserve(true_);this -> reserve(false_);
         this -> reserve(new word("if",tag::IF));

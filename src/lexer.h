@@ -34,8 +34,8 @@ namespace lexer
             typedef token_storage              tok_st;
             typedef tok_st*                    tok_st_ptr;
         public:
-            elem_t  peek;
-            int     lineno;
+            elem_t          peek;
+            static  int     lineno;
         private:
             iol_ptr sys_io;
         public:
