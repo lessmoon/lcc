@@ -16,3 +16,5 @@
 *.la
 *.gch
 test*
+.*
+!.gitignore
