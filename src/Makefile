@@ -1,4 +1,4 @@
-OBJS = lexer.o reserved.o lexertest.o kb_io.o token_storage.o
+OBJS = lexer.o reserved.o lexertest.o kb_io.o file_io.o token_storage.o
 
 CPPC = g++ -c
 
@@ -21,6 +21,9 @@ reserved.o:reserved.cpp type.h word.h
 
 kb_io.o:kb_io.cpp kb_io.h iol.h
 	$(CPPC) $(CPPFLAGS) kb_io.cpp
+
+file_io.o:file_io.cpp iol.h
+	$(CPPC) $(CPPFLAGS) file_io.cpp
 
 lexertest.o:lexertest.cpp lexer.o reserved.o kb_io.o
 	$(CPPC) $(CPPFLAGS) lexertest.cpp

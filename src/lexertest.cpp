@@ -1,5 +1,6 @@
 #include"lexer.h"
 #include"kb_io.h"
+#include"file_io.h"
 #include<iostream>
 
 using namespace std;
@@ -9,7 +10,7 @@ using namespace system;
 
 int main()
 {
-    iol* con_io = new kb_io;
+    iol* con_io = new file_io("iol.h");
     lexer::lexer lex(con_io);
     tag_t tag;
     token*p;
@@ -19,7 +20,7 @@ int main()
                 break;
             cout<<p->tag<<":~:"<<p->toString()<<endl;
     }
-    
+
     delete con_io;
     return 0;
 }
