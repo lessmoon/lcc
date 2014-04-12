@@ -301,25 +301,28 @@ struct item{
     int now;//begin at 0
     int l;//the left id
     right*r;//the right list
-    item(const int now,const int l,right*r)
-    :now(now),l(l),r(r){}
+    int a;//lookahead symbol
 
-    void set(const int now,const int l,right*r)
+    item(const int now,const int l,right*r,const int a = 0)
+    :now(now),l(l),r(r),a(a){}
+
+    void set(const int now,const int l,right*r,const int a = 0)
     {
         this -> now = now;
         this -> l = l;
         this -> r = r;
+        this -> a = a;
     }
 
     bool operator==(const item&z)const
     {
-        return (now == z.now)&&(l==z.l)&&(*r == (*z.r));
+        return (now == z.now)&&(l==z.l)&&(*r == (*z.r))&&(this -> a == z.a);
     }
 
     std::string toString()const
     {
         return ::toString(l) + "->" + r-> toString()
-                + "(" + ::toString(now)+ ")";
+                + "(" + ::toString(now)+ ") [" + ::toString(this -> a) + "]";
     }
 
     int at(const int idx)const
