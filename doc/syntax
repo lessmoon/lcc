@@ -3,7 +3,7 @@ block   -> { decls stmts }
 decls   -> decls decl | e
 decl    -> BASIC init-decl ;
 init-decl -> id | id = expr | id[NUM] | id[NUM(opt)] = {init-list}
-init-list -> expr | init-list expr
+init-list -> expr | init-list `,' expr
 stmts -> stmts stmt | e
 stmt  ->  if(bool) stmt
         | if(bool) stmt else stmt
