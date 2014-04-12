@@ -19,22 +19,10 @@ namespace inter{
             
         }
     public:
-        int newlable()
-        {
-            return ++labels;
-        }
-
-        void emitlabel(int i)
-        {
-            //TODO generate i
-        }
-
-        void emit(const string&s)
-        {
-            //TODO generate this code
-        }
+        virtual int newlabel();
+        virtual void emitlabel(int i);
+        virtual void emit(const string&s);
     };//class node
-    int node::labels = 0;//TODO Move to .cpp
 };//namespace symbols
 
 #endif//_NODE_H
