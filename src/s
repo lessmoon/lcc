@@ -1,0 +1,37 @@
+#var program,block,decls,decl,init_decl,
+     init_list,stmts,stmt,loc,expr,bool_,join,equality,rel,add,term,unary,postfix,factor;
+#sym LCB,RCB,LSB,RSB,COMMA,SEM,
+     ID,BREAK,
+     BASIC,NUM,IF,ELSE,EMPTY,FOR,DO,WHILE,REAL,TRUE,FALSE,LB,RB,
+     INC,DEC,PLUS,MIN,DIV,MULT,
+     ASS,OR,AND,GT,GE,NE,EQ,LS,LE,NOT;
+
+!program = block ;
+!block   = LCB decls stmts RCB;
+!decls   = decls decl | EMPTY;
+!decl    = BASIC init_decl SEM ;
+!init_decl = ID | ID ASS expr | ID LSB NUM RSB | ID LSB NUM RSB EQ LCB init_list RCB ;
+!init_list = expr | init_list COMMA expr;
+!stmts = stmts stmt | EMPTY;
+!stmt  =  IF LB bool_ RB stmt
+        | IF LB bool_ RB stmt ELSE stmt
+        | WHILE LB bool_ RB stmt
+        | DO stmt WHILE LB bool_ RB SEM
+        | FOR LB expr SEM expr SEM expr RB stmt
+        | BREAK SEM
+        | block
+        | expr SEM ;
+!loc     = ID LCB bool_ RCB | ID;
+
+!expr    = loc EQ bool_ | bool_;
+!bool_   = bool_ OR join | join;
+!join    = join AND equality | equality;
+!equality= equality EQ rel | equality NE rel | rel;
+!rel     = add|add GT add | add LS add | add EQ add | add LE add | add GE add | add NE add;
+!add     = add PLUS term | add MIN term|term;
+!term    = term MIN unary|term DIV unary | unary;
+!unary   =  NOT postfix | MIN  postfix | INC postfix | DEC postfix | postfix;
+!postfix = factor DEC | factor INC | factor;
+!factor  = LB bool_ RB | loc | REAL | NUM | TRUE | FALSE;
+*program;
+7

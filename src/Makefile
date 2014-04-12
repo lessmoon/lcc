@@ -4,9 +4,9 @@ OBJS = $(OBJS1) lexertest.o
 
 CPPC = g++ -c
 
-LD   = g++
+LD   = g++ -g
 
-CPPFLAGS = -O3
+CPPFLAGS =  -g
 
 TAR = test 
 TAR2 = test2
