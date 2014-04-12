@@ -1,5 +1,6 @@
 #include"lexer.h"
 #include"kb_io.h"
+#include"file_io.h"
 
 #include<string>
 #include<list>
@@ -8,6 +9,7 @@
 #include<iostream>
 #include<vector>
 #include<sstream>
+
 enum TYPE { UNKNOWN = -1, VAR, SYM };
 
 struct right {
@@ -248,6 +250,8 @@ class parser {
 		match('!');
 		string leftname = toString();
 		if (getdef(leftname) != VAR) {
+            std::cerr<<"In line "<<lex -> lineno
+                     <<"."<<leftname<<"not found here."<<std::endl;
 			throw 999;	//NOT FOUND OR IS SYMBOLS
 		}
 		this->read();
@@ -601,7 +605,7 @@ void calculate_item_set(item_set&s,item_list&I0,
 */
 int main()
 {
-	system::iol * con_io = new system::kb_io;
+	system::iol * con_io = new system::file_io("s");
 	lexer::lexer * l = new lexer::lexer(con_io);
 	parser p(l);
 	prods::map::iterator iter;
@@ -614,6 +618,7 @@ int main()
         ss  = p.getstmts();
     }catch(int e){
         std::cerr<<e<<std::endl;
+        return 1;
     }catch(...){
         throw;
     }

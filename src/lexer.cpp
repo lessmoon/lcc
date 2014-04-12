@@ -88,7 +88,7 @@ namespace lexer{
         buf.reserve(MAX_LEXME_STR);
 
         for(;;readch()){
-            if(CH_IS(peek,' ') || CH_IS(peek , '\t'))
+            if(CH_IS(peek,' ') || CH_IS(peek , '\t') || CH_IS(peek , '\r'))
                 continue;
             else if(CH_IS(peek , '\n'))
                 lineno++;
