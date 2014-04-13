@@ -75,6 +75,16 @@ struct rightlist {
         return tmp;
     }
 
+    int size()const
+    {
+        return pro_seq.size();
+    }
+
+    right*at(const int idx)
+    {
+        return pro_seq[idx];
+    }
+
     bool find(const right*z)const
     {
         list::const_iterator iter = pro_seq.begin();
@@ -204,7 +214,7 @@ class parser {
 
 	void def(const string & name, const TYPE t)
 	{
-        
+
 		if (def_table.find(name) != def_table.end())
 			throw 777;	//REDFINED ERROR
 		else{
@@ -271,7 +281,7 @@ class parser {
 	right *getprod()
 	{
 		right *res = new right;
-		while (look->tag ==::lexer::tag::ID) {
+		while (look->tag ==::lexer::tag::ID || look -> tag == '%') {
 			if (getdef(toString()) == UNKNOWN)	//not defined
 				throw 1111;
 			else
@@ -422,242 +432,117 @@ struct item_list{
     }
 };
 
-void calculate_closure(item_list&I,prods*stmts)
-{
-    int size;
-    item_list::container::iterator iter_item;
-    rightlist::list::iterator iter_right;
-    right*r;
-    rightlist*rl;
-    item tmp(0,0,0);
-
-    int l;
-    int now;
-    do{
-        size = I.size();
-        for(int i = 0;
-            i < I.seq.size();
-            i++){
-           r = I.seq[i].r;
-           now = I.seq[i].now;
-           if(now < r -> var_seq.size()){
-            l = r -> var_seq[now];
-            rl = stmts->get(l);
-            if(rl != NULL){
-            for(iter_right = rl -> pro_seq.begin();
-                iter_right != rl -> pro_seq.end();
-                iter_right ++){
-                    tmp.set(0,l,*iter_right);
-                    if(!I.find(tmp)){
-                        I.push(tmp);//0 is the begin
-                    }
-                }
-            }
-           }
-        }
-        /*#var a,b;
-#sym p,m,c,lb,rb;
-!a = b p a|b m a|b;
-!b = lb a rb|c;
-*a;
-1
 
 
-        */
-    }while(I.size() > size);
-
-}
-
-struct item_set{
-    typedef std::vector<item_list> container;
-    container seq;
-    typedef std::vector<action_node> line;
-    typedef std::vector<line> table;
-    table atab;
-    int num_syms;
-
-    void set_syms(const int num)
-    {
-        num_syms = num;
-    }
-
-    void atab_add_one_line()
-    {
-        atab.reserve(atab.size() + 1);
-        atab.resize(atab.size() + 1);
-        atab[atab.size()-1].reserve(num_syms);
-        atab[atab.size()-1].resize(num_syms);
-    }
-
-    int add(const item_list&i)
-    {
-        seq.push_back(i);
-        atab_add_one_line();
-        return seq.size() - 1;
-    }
-
-    item_list&at(const int id)
-    {
-        return seq.at(id);
-    }
-
-    int size()const
-    {
-        return seq.size();
-    }
-
-    void print()const
-    {
-        for(int i = 0;i < size();i++){
-            std::cout<<"I"<<i<<std::endl;
-            seq[i].print();
-        }
-        std::cout<<"I"<<"\t";
-        for(int i = 0;i < size();i++){
-            std::cout<<"\t";
-        }
-        std::cout<<std::endl;
-        for(int i = 0;i < size();i++){
-            std::cout<<"I"<<i<<"\t";
-            for(int j = 0;j < num_syms;j++)
-                std::cout<<(atab[i][j].t == REDUCE?'r'
-                            :(atab[i][j].t == ERROR)?'e'
-                            :'s')<<atab[i][j].where<<"\t";
-            std::cout<<std::endl;
-        }
-        std::cout<<std::endl;
-    }
-
-    int find(const item_list&z)const
-    {
-        for(int j = size() -1;j >=0;j--)
-            if(z == seq[j])
-                return j;
-        return -1;
-    }
-};//struct item_set
-
-void calculate_item_set(item_set&s,item_list&I0,
-                        prods*stmts,const int num_syms)
-{
-    item_list*il;
-    s.set_syms(num_syms);
-    s.add(I0);
-    int size;
-    item*it;
-    item_list tmp1;
-
-//loop:
-    //size = s.size();
-    for(int i = 0;i < s.size();i++){
-
-        //for each context grammer symbols
-        for(int k = 0;k < num_syms;k++){
-            il = &(s.at(i));
-            for(int j = 0;j < il -> size();j++){
-                //il = &(s.at(i));//I Should Say :BE CAREFUL!!!
-                it = &(il -> at(j));
-                //il -> print();
-                //std::cout<<il -> at(j).toString()<<std::endl;
-                //it -> print();
-                //std::cout<<it<<std::endl;
-                if(it -> now < it -> size()){//this symbols has not finished
-                    if(it -> at(it -> now) == k){/*next symbol is k*/
-                        item tmp(it -> now + 1 ,it -> l,it -> r);
-                        if(!tmp1.find(tmp)){
-                            tmp1.push(tmp);
-                            calculate_closure(tmp1,stmts);
-                        }
-                    }
-                }else{
-                    if(it -> l != -1){
-                        s.atab[i][k] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));//f is the chanshengshide id
-                    }else{
-                        s.atab[i][k] = action_node(REDUCE,0);//it is the accept point
-                    }
-                }
-            }
-             if(tmp1.size() > 0){
-                 int z;
-                 int f = s.find(tmp1);
-                   if(f < 0){
-                       f = s.add(tmp1);//i ----k---- z.IT should be blame
-                   }
-                  s.atab[i][k] = action_node(JUSTGO,f);
-            }
-            tmp1.clear();
-            //std::cout<<i<<":"<<std::endl;
-            //s.print();
-            //
-            //foreach item in il
-            //if now < item.size() - 1 and item.at(now + 1) == k
-            //-----k------> closure(item + 1) into tmp
-            // It is GOTO(i,k) = s.add();
-            // Find if(tmp in s)
-            //if not s.add(tmp)
-        }
-    }
-
-}
 /*
-#var e,t,f;
-#sym id,l,r,p,m;
-!e = e p t|t;
-!t = t m f|f;
-!f = l e r|id;
-*e;
-*/
+ * return if the set of first symbols contains the empty symbol
+ */
+
+bool first_sym(const int sym,std::set<int>&fset,
+                std::set<int>&has_visited,
+                std::set<int>&has_empty,
+                prods*ss,parser::syms_var_table*svt)
+{
+#define sym_type(x) (svt->at(x))
+#define EMPTY       0
+    bool res = false;
+    int var;
+    rightlist* z;
+    if(sym_type(sym) == SYM){
+        fset.insert(sym);
+        return (sym == EMPTY);
+    }
+    /*
+     *  but in this case this return may be not right
+     *  a => b a c | E;
+     *  b => E ;
+     *  first(a) = first(b) U first(c) actually
+     */
+    if(has_visited.count(sym) > 0){//this var has been visited
+        return (has_empty.count(sym) > 0);
+    }
+    has_visited.insert(sym);//put the sym into visited
+    z = ss -> get(sym);
+    if(ss == NULL)
+        throw 7891011;
+    right* tmp;
+    int size = -1;
+    bool test = false;
+    while(size < (int)fset.size()){
+        size = fset.size();
+        for(int i = 0; i < z -> size();i++){
+            tmp = (z -> at(i));
+            test = false;
+            for(int j = 0;j < tmp -> size();j++){
+                /*
+                 * A funny bug: Code With Bugs Before is following
+                 * res = res || first_sym(...)
+                 */
+                test =  first_sym(  tmp -> at(j),fset,
+                                   has_visited,has_empty,
+                                   ss,svt) || test;
+                if(!test){
+                        res = true;
+                        break;
+                }else{
+                        has_empty.insert(sym);
+                }
+            }
+        }
+    }
+    return res;
+#undef EMPTY
+#undef sym_type//define sym_type(x)
+}
+
+void closure(item_list&il)
+{
+
+}
+
 int main()
 {
-	system::iol * con_io = new system::kb_io;
-	lexer::lexer * l = new lexer::lexer(con_io);
-	parser p(l);
-	prods::map::iterator iter;
-	right expand;
-    item tmp(0,-1,&expand);
-    item_list I0;
+    typedef std::set<int> flag_set;
+    flag_set first_set,has_visited,has_empty;
+    parser::syms_var_table* svt ;
+    system::iol* io = new system::kb_io;
+    lexer::lexer* l = new lexer::lexer(io);
+    parser* p = new parser(l);
+    prods* ss = p -> getstmts();
 
-    prods *ss ;
-    try{
-        ss  = p.getstmts();
-    }catch(int e){
-        std::cerr<<e<<std::endl;
-        return 1;
-    }catch(...){
-        throw;
-    }
-
-    for(iter = ss -> seq.begin();
+    svt = &(p -> ratable);
+    for(prods::map::iterator iter = ss -> seq.begin();
         iter != ss -> seq.end();
         iter++){
         std::cout<<"\t";
-        if(p.begin.count(iter -> first)>0)
+        if(p -> begin.count(iter -> first)>0)
             std::cout<<">>";
         std::cout<<iter -> first<<" -> \t";
         std::cout<<iter->second->toString();
         std::cout<<"\n";
     }
 
-    for(parser::list::iterator it = p.begin.begin();
-        it != p.begin.end();
-        it++){
-        expand.add(*it);
-        break;
+    int sym;
+    while(std::cin>>sym){
+        if(sym < 0)
+            goto end;
+
+        first_sym(  sym,first_set,
+                    has_visited,has_empty,
+                    ss,svt );
+        for(flag_set::iterator iter = first_set.begin();
+            iter != first_set.end();
+            iter ++){
+                std::cout<<*iter<<" ";
+            }
+        std::cout<<std::endl;
+        first_set.clear();
+        has_visited.clear();
+        has_empty.clear();
     }
-
-    I0.push(tmp);
-
-    calculate_closure(I0,ss);
-
-    item_set iset;
-    calculate_item_set(iset,I0,ss,p.number_of_symbols());
-
-    std::cout<<"I0:"<<std::endl;
-    //I0.print();
-
-    std::cout<<"OK:"<<std::endl;
-    iset.print();
-	delete l;
-	delete con_io;
-	return 0;
+end:
+    delete p;
+    delete l;
+    delete io;
+    return 0;
 }

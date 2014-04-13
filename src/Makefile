@@ -1,5 +1,5 @@
 OBJS1 = lexer.o reserved.o kb_io.o file_io.o token_storage.o
-OBJS2 = $(OBJS1) mycc.o
+OBJS2 = $(OBJS1) cclr4.o
 OBJS = $(OBJS1) lexertest.o
 
 CPPC = g++ -c
@@ -16,8 +16,8 @@ all:$(OBJS)
 ptest:$(OBJS2)
 	$(LD) $(OBJS2) -o $(TAR2)
 
-testparser.o:mycc.cpp reserved.o kb_io.o file_io.o token_storage.o
-	$(CPPC) $(CPPFLAGS) mycc.cpp
+cclr4.o:cclr4.cpp reserved.o kb_io.o file_io.o token_storage.o
+	$(CPPC) $(CPPFLAGS) cclr4.cpp
 
 lexer.o:lexer.cpp reserved.o token_storage.o lexer.h real.h num.h\
         tag.h type.h\
