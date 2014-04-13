@@ -1,3 +1,9 @@
+/* 
+ * Fixed
+ * Reason:
+ * At line 482~483(in the function first_sym())
+ * I put the sentence `res = true' into wrong if-else blocks.
+ */
 Running the test2.
 There is a logical error(the result is not right):
 

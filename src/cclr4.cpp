@@ -467,12 +467,11 @@ bool first_sym(const int sym,std::set<int>&fset,
         throw 7891011;
     right* tmp;
     int size = -1;
-    bool test = false;
+    bool test;
     while(size < (int)fset.size()){
         size = fset.size();
         for(int i = 0; i < z -> size();i++){
             tmp = (z -> at(i));
-            test = false;
             for(int j = 0;j < tmp -> size();j++){
                 /*
                  * A funny bug: Code With Bugs Before is following
@@ -480,11 +479,11 @@ bool first_sym(const int sym,std::set<int>&fset,
                  */
                 test =  first_sym(  tmp -> at(j),fset,
                                    has_visited,has_empty,
-                                   ss,svt) || test;
+                                   ss,svt) ;
                 if(!test){
-                        res = true;
                         break;
                 }else{
+                        res = true;
                         has_empty.insert(sym);
                 }
             }
