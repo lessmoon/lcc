@@ -40,4 +40,4 @@ token_storage.o:token_storage.cpp token_storage.h token.h
 	$(CPPC) $(CPPFLAGS) token_storage.cpp
 
 clean:
-	-rm $(OBJS) $(TAR) $(TAR2)
+	-rm $(OBJS) $(OBJS2) $(TAR) $(TAR2)

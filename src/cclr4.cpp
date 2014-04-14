@@ -166,6 +166,14 @@ class parser {
 			delete stmts;	//wrong foreach
 		//def_table.clear
 	}
+
+	void print_def_table()
+	{
+	    for(syms_vars::iterator iter = def_table.begin();iter != def_table.end();iter++){
+            std::cout<<iter -> second<<":"<<iter -> first<<std::endl;
+	    }
+	}
+
 	parser(lexer * lex)
 	:lex(lex), stmts(NULL)
 	{
@@ -182,7 +190,8 @@ class parser {
 		if (stmts != NULL)
 			delete stmts;
 		stmts = new prods;
-        this -> def("%",SYM);
+        this -> def("%",SYM);//empty symbol,USING 0
+        this -> def("$",SYM);//the end symbol of the input stream,USING 1
         this->read();
 		while (look->tag == '#')	//define the symbols and variable
 			getdef();
@@ -293,8 +302,8 @@ class parser {
 
 	std::string toString()
 	{
-        if(look -> tag == '%')
-            return "%";
+        if(look -> tag == '%' || look -> tag == '$')
+            return std::string("")+char(look -> tag);
 		return (static_cast < ::lexer::word * >(look))->lexme;
 	}
 
@@ -438,6 +447,9 @@ struct item_list{
  * return if the set of first symbols contains the empty symbol
  */
 
+/*
+ * Calclute the first symbol set of a given symbol
+ */
 bool first_sym(const int sym,std::set<int>&fset,
                 std::set<int>&has_visited,
                 std::set<int>&has_empty,
@@ -494,11 +506,95 @@ bool first_sym(const int sym,std::set<int>&fset,
 #undef sym_type//define sym_type(x)
 }
 
-void closure(item_list&il)
+/*
+ * Calculate the first syms of a given symbol list.
+ * e.g:
+ *     a => a b d|E
+ *     b => F d|C
+ *     d => H;
+ * the first({a b d}) = {F,C};
+ */
+bool first_sym( std::vector<int> syms,std::set<int>&fset,
+                std::set<int>&has_visited,
+                std::set<int>&has_empty,
+                prods*ss,parser::syms_var_table*svt)
 {
+        bool res = false;
+        int size = -1;
+        while(size < (int)fset.size()){
+            size = fset.size();
+            for(int i = 0;i < syms.size();i++){
+                res = first_sym(syms[i],fset,has_visited,has_empty,ss,svt);
+                if(!res){
+                    break;
+                }else{
+                    has_empty.insert(syms[i]);
+                }
+            }
+        }
 
+        return res;
 }
 
+void closure(item_list&I,prods*stmts,parser::syms_var_table*svt)
+{
+loop:
+    int size;
+    item_list::container::iterator iter_item;
+    rightlist::list::iterator iter_right;
+    right*r;
+    int l;
+    int now;
+    rightlist*rl;
+    item tmp(0,0,0,0);
+    std::vector<int> seq;
+    std::set<int> fset;
+    std::set<int> has_visited;
+    std::set<int> has_empty;
+    right* tmpr = NULL;
+    do{
+        size = I.size();
+        for(int i = 0;
+            i < I.size();
+            i++){
+            r = I.seq[i].r;
+            now = I.seq[i].now;
+            l = r -> var_seq[now];
+            rl = stmts -> get(l);
+            if(rl == NULL)//if it is not a symbol var
+                continue;
+            seq.clear();
+            fset.clear();
+            has_visited.clear();
+            has_empty.clear();
+            for(int j = now + 1;j < r -> var_seq.size();j++){
+                seq.push_back(r -> var_seq[j]);
+            }
+            seq.push_back(I.seq[i].a);
+            first_sym(seq,fset,has_visited,has_empty,stmts,svt);//calculate the first_set of the sym seq
+            for(int j = 0; j < rl -> size();j++){//for each prod l => ?
+                tmpr = rl -> at(j);
+                for(std::set<int>::iterator iter = fset.begin();
+                    iter != fset.end();
+                    iter++){
+                    tmp.set(0,l,tmpr,*iter);
+                    if(!I.find(tmp))
+                        I.push(tmp);
+                }
+            }
+        }
+    }while(I.size() > size);
+}
+/*
+#var S,L,R;
+#sym EQ,STAR,i;
+!S = L EQ R;
+!S = R;
+!L = STAR R;
+!L = i;
+!R = L;
+*S;
+ */
 int main()
 {
     typedef std::set<int> flag_set;
@@ -508,6 +604,9 @@ int main()
     lexer::lexer* l = new lexer::lexer(io);
     parser* p = new parser(l);
     prods* ss = p -> getstmts();
+
+    std::cout<<"The map table:\n";
+    p -> print_def_table();
 
     svt = &(p -> ratable);
     for(prods::map::iterator iter = ss -> seq.begin();
@@ -522,9 +621,10 @@ int main()
     }
 
     int sym;
+    std::cout<<"Calculate single symbol:\n";
     while(std::cin>>sym){
         if(sym < 0)
-            goto end;
+            break;
 
         first_sym(  sym,first_set,
                     has_visited,has_empty,
@@ -539,9 +639,57 @@ int main()
         has_visited.clear();
         has_empty.clear();
     }
+    std::cout<<"Calculate symbols list:\n";
+    std::vector<int> syml;
+    while(std::cin>>sym){
+        if(sym >= 0)
+            syml.push_back(sym);
+        else{
+            if(syml.size() == 0)
+                break;
+            first_sym(syml,first_set,
+                      has_visited,has_empty,
+                      ss,svt);
+            for(flag_set::iterator iter = first_set.begin();
+                iter != first_set.end();
+                iter ++){
+                    std::cout<<*iter<<" ";
+            }
+            std::cout<<std::endl;
+            syml.clear();
+            first_set.clear();
+            has_visited.clear();
+            has_empty.clear();
+        }
+    }
+
+    std::cout<<"Calculate the closure of the I0"<<std::endl;
+#define END_SYM 1
+
+    item_list I0;
+    item tmp(0,0,NULL,END_SYM);//the lookahead symbols is $
+    for(parser::list::iterator iter = p -> begin.begin();
+            iter != p -> begin.end();
+            iter++){
+            right*temp = new right;
+            temp -> add(*iter);
+            tmp.set(0,0,temp,END_SYM);
+            I0.push(tmp);
+    }
+    closure(I0,ss,svt);
+
+    I0.print();
+
+    /*
+     * TODO:Clean the right allocated here
+     */
+
+#undef END_SYM
 end:
+
     delete p;
     delete l;
     delete io;
     return 0;
 }
+
