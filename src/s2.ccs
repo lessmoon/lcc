@@ -1,4 +1,4 @@
-,L,R;
+#var S,L,R;
 #sym EQ,STAR,i;
 !S = L EQ R;
 !S = R;

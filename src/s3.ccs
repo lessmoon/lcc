@@ -1,0 +1,110 @@
+#var start,additive_expression,assignment_expression,block,
+	declarator,declarator_list,expression,
+	initializer_list,logical_AND_expression,
+	logical_OR_expression,multiplicative_expression,
+	postfix_expression,primary_expression,
+	program,relational_expression,
+	statement,statements;
+
+#sym	MAIN,INT,IF,ELSE,WHILE,FOR,
+	PLUSOP,
+	MINUSOP,
+    	PPLUSOP ,
+    	MMINUSOP , 
+    	MULTIOP   , 
+    	DIVOP      ,
+    	MODOP      ,
+	LP         ,
+    	RP         ,
+    	LB         ,
+    	RB         ,
+    	STRING     ,
+	IDENTIFIER,
+	CONSTANT,
+	AND		, 
+	OR		 , 
+    	COMMA     , 
+    	SEMICOLON  ,
+    	ASSIGN     ,
+    	EQ        , 
+    	LT         ,
+    	GT         ,
+    	LE        , 
+    	GE        , 
+    	NE         ,
+    	LS         ,
+    	RS         ;
+
+!program  = MAIN LB statements RB ;
+
+!statements =  % | statements statement SEMICOLON ;
+
+!block = statement | LB statements RB ;
+
+!statement = INT declarator_list SEMICOLON
+	     | expression SEMICOLON 
+	     | IF LP expression RP block
+	     | IF LP expression RP block ELSE block
+	     | WHILE LP expression RP block
+	     | FOR LP expression SEMICOLON expression SEMICOLON expression RP block ;
+!postfix_expression = IDENTIFIER;
+!primary_expression = 
+			IDENTIFIER
+			| CONSTANT
+			| STRING
+			| LP expression RP
+			| postfix_expression
+			| IDENTIFIER
+			| IDENTIFIER LS expression RS
+			| postfix_expression PPLUSOP
+			| postfix_expression MMINUSOP ;
+
+!multiplicative_expression = 
+			postfix_expression
+			| multiplicative_expression MULTIOP postfix_expression
+			| multiplicative_expression DIVOP postfix_expression
+			| multiplicative_expression MODOP postfix_expression ;
+
+!additive_expression = 
+			multiplicative_expression
+			| additive_expression PLUSOP multiplicative_expression
+			| additive_expression MINUSOP multiplicative_expression ;
+
+!relational_expression = 
+			additive_expression
+			| relational_expression LT additive_expression
+			| relational_expression GT additive_expression
+			| relational_expression LE additive_expression
+			| relational_expression GE additive_expression
+			| relational_expression EQ additive_expression
+			| relational_expression NE additive_expression ;
+			
+!logical_AND_expression = 
+			relational_expression
+			| logical_AND_expression AND relational_expression ;
+
+!logical_OR_expression =
+			logical_AND_expression
+			| logical_OR_expression OR logical_AND_expression ;
+		
+!assignment_expression =
+			postfix_expression ASSIGN logical_OR_expression ;
+
+!expression =
+			assignment_expression
+			| expression COMMA assignment_expression ;
+
+!declarator_list =
+			declarator
+			| declarator_list COMMA declarator ;
+	
+!declarator = IDENTIFIER	
+			| IDENTIFIER LS CONSTANT RS ASSIGN LB initializer_list RB
+			| IDENTIFIER ASSIGN CONSTANT ;
+
+!initializer_list = CONSTANT
+			| initializer_list COMMA CONSTANT ;
+*program;
+-1
+-1
+-1

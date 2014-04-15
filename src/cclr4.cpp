@@ -474,7 +474,7 @@ bool first_sym(const int sym,std::set<int>&fset,
     }
     has_visited.insert(sym);//put the sym into visited
     z = ss -> get(sym);
-    if(ss == NULL)
+    if(z == NULL)
         throw 7891011;
     right* tmp;
     int size = -1;
@@ -708,7 +708,8 @@ struct item_set{
             for(int j = 0;j < num_syms;j++)
                 std::cout<<(atab[i][j].t == REDUCE?'r'
                             :(atab[i][j].t == ERROR)?'e'
-                            :'s')<<atab[i][j].where<<"\t";
+                            :(atab[i][j].t == SEND)?'s'
+                            :' ')<<atab[i][j].where<<"\t";
             std::cout<<std::endl;
         }
         std::cout<<std::endl;
@@ -776,8 +777,9 @@ void closure_set(   item_set&s,item_list&I0,
 
 void closure_set(   item_set&s,item_list&I0,
                     prods*stmts,std::vector< std::set<int> >&ffsm,
-                   const int num_syms)
+                   const int num_syms,parser::syms_var_table*svt)
 {
+#define sym_type(x) (svt -> at(x))
     item_list* il;
     s.set_syms(num_syms);
     s.add(I0);
@@ -804,11 +806,6 @@ void closure_set(   item_set&s,item_list&I0,
                         }
                     }
                 }else{
-                    if(it -> l != -1){
-                        s.atab[i][k] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
-                    }else{
-                        s.atab[i][k] = action_node(REDUCE,0);
-                    }
                 }
             }
             if(tmp1.size() > 0){
@@ -817,10 +814,31 @@ void closure_set(   item_set&s,item_list&I0,
                 if(f < 0){
                     f = s.add(tmp1);
                 }
-                s.atab[i][k] = action_node(JUSTGO,f);
+                s.atab[i][k] = action_node((sym_type(k)==SYM?SEND
+                                            :JUSTGO),f);
             }
             tmp1.clear();
         }
+    }
+
+    for(int i = 0 ;i < s.size();i++){
+        il = &(s.at(i));
+        for(int k = 1;k < num_syms;k++){
+            for(int j = 0;j < il -> size();j++){
+                it = &(il -> at(j));
+                if(it -> now == it -> size()){
+                    if(it -> l != -1){
+                        /*it should be reduced now!*/
+                        s.atab[i][it -> a] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
+                    }else{
+                        /*it is the state of accept*/
+                        if(k == 1)
+                            s.atab[i][k] = action_node(REDUCE,0);
+                    }
+            }
+        }
+        }
+#undef sym_type
     }
 }
 
@@ -842,7 +860,12 @@ int main()
     system::iol* io = new system::kb_io;
     lexer::lexer* l = new lexer::lexer(io);
     parser* p = new parser(l);
-    prods* ss = p -> getstmts();
+    prods* ss ;
+    try{
+        ss = p -> getstmts();
+    }catch(int i){
+        std::cout<<i<<std::endl;
+    }
     std::vector<std::set<int> > ffsm;//cache the first set of each symbol
 
     std::cout<<"The map table:\n";
@@ -853,9 +876,14 @@ int main()
     /*calculate each symbol's first set*/
     
     for(int i = 0; i < p -> number_of_symbols();i++){
-        first_sym(  i,ffsm[i],
+        try{
+            first_sym(  i,ffsm[i],
                     has_visited,has_empty,
                     ss,svt );
+        }catch(int i){
+            std::cout<<"errno:"<<i<<std::endl;
+            continue;
+        }
         has_visited.clear();
         has_empty.clear();
     }
@@ -970,8 +998,10 @@ int main()
 
     std::cout<<"Calculate the closure sets:"<<std::endl;
     item_set is;
-    closure_set(is,I0,ss,ffsm,p -> number_of_symbols());
+    
+    closure_set(is,I0,ss,ffsm,p -> number_of_symbols(),svt);
     is.print();
+    p -> print_def_table(); 
 end:
 
     delete p;
