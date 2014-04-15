@@ -1,0 +1,11 @@
+,L,R;
+#sym EQ,STAR,i;
+!S = L EQ R;
+!S = R;
+!L = STAR R;
+!L = i;
+!R = L;
+*S;
+-1
+-1
+-1

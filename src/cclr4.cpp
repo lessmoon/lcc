@@ -442,7 +442,6 @@ struct item_list{
 };
 
 
-
 /*
  * return if the set of first symbols contains the empty symbol
  */
@@ -514,7 +513,8 @@ bool first_sym(const int sym,std::set<int>&fset,
  *     d => H;
  * the first({a b d}) = {F,C};
  */
-bool first_sym( std::vector<int> syms,std::set<int>&fset,
+
+bool first_sym( std::vector<int>&syms,std::set<int>&fset,
                 std::set<int>&has_visited,
                 std::set<int>&has_empty,
                 prods*ss,parser::syms_var_table*svt)
@@ -534,6 +534,23 @@ bool first_sym( std::vector<int> syms,std::set<int>&fset,
         }
 
         return res;
+}
+
+bool first_sym(std::vector<int>&syms,std::set<int>&fset,//fset is the result to return
+                std::vector< std::set<int> >&ffsm//the fast first symbols map
+                )
+{
+    bool res = false;
+    int size = -1;
+    size = fset.size();
+    for(int i = 0;i < syms.size();i++){
+        std::set<int>&tmp = ffsm[syms[i]];
+        fset.insert(tmp.begin(),tmp.end());
+        if(tmp.count(0) == 0){//has no empty symbol in its first symbols
+             break;
+        }
+    }
+    return fset.count(0);
 }
 
 void closure(item_list&I,prods*stmts,parser::syms_var_table*svt)
@@ -585,6 +602,228 @@ loop:
         }
     }while(I.size() > size);
 }
+
+void closure(   item_list&I,std::vector< std::set<int> >&ffsm,
+                prods*stmts)
+{
+loop:
+    int size;
+    item_list::container::iterator iter_item;
+    rightlist::list::iterator iter_right;
+    right*r;
+    int l;
+    int now;
+    rightlist*rl;
+    item tmp(0,0,0,0);
+    std::vector<int> seq;
+    std::set<int> fset;
+    std::set<int> has_visited;
+    std::set<int> has_empty;
+    right* tmpr = NULL;
+    do{
+        size = I.size();
+        for(int i = 0;
+            i < I.size();
+            i++){
+            r = I.seq[i].r;
+            now = I.seq[i].now;
+            l = r -> var_seq[now];
+            rl = stmts -> get(l);
+            if(rl == NULL)//if it is not a symbol var
+                continue;
+            seq.clear();
+            fset.clear();
+            has_visited.clear();
+            has_empty.clear();
+            for(int j = now + 1;j < r -> var_seq.size();j++){
+                seq.push_back(r -> var_seq[j]);
+            }
+            seq.push_back(I.seq[i].a);
+            first_sym(seq,fset,ffsm);//calculate the first_set of the sym seq
+            for(int j = 0; j < rl -> size();j++){//for each prod l => ?
+                tmpr = rl -> at(j);
+                for(std::set<int>::iterator iter = fset.begin();
+                    iter != fset.end();
+                    iter++){
+                    tmp.set(0,l,tmpr,*iter);
+                    if(!I.find(tmp))
+                        I.push(tmp);
+                }
+            }
+        }
+    }while(I.size() > size);
+}
+
+struct item_set{
+    typedef std::vector<item_list> container;
+    container seq;
+    typedef std::vector<action_node> line;
+    typedef std::vector<line> table;
+    table atab;
+    int num_syms;
+
+    void set_syms(const int num)
+    {
+        num_syms = num;
+    }
+
+    void atab_add_one_line()
+    {
+        atab.reserve(atab.size() + 1);
+        atab.resize(atab.size() + 1);
+        atab[atab.size()-1].reserve(num_syms);
+        atab[atab.size()-1].resize(num_syms);
+    }
+
+    int add(const item_list&i)
+    {
+        seq.push_back(i);
+        atab_add_one_line();
+        return seq.size() - 1;
+    }
+
+    item_list&at(const int id)
+    {
+        return seq.at(id);
+    }
+
+    int size()const
+    {
+        return seq.size();
+    }
+
+    void print()const
+    {
+        for(int i = 0;i < size();i++){
+            std::cout<<"I"<<i<<std::endl;
+            seq[i].print();
+        }
+        std::cout<<"I"<<"\t";
+        for(int i = 0;i < num_syms;i++){
+            std::cout<<i<<"\t";
+        }
+        std::cout<<std::endl;
+        for(int i = 0;i < size();i++){
+            std::cout<<"I"<<i<<"\t";
+            for(int j = 0;j < num_syms;j++)
+                std::cout<<(atab[i][j].t == REDUCE?'r'
+                            :(atab[i][j].t == ERROR)?'e'
+                            :'s')<<atab[i][j].where<<"\t";
+            std::cout<<std::endl;
+        }
+        std::cout<<std::endl;
+    }
+
+    int find(const item_list&z)const
+    {
+        for(int j = size() -1;j >=0;j--)
+            if(z == seq[j])
+                return j;
+        return -1;
+    }
+};//struct item_set
+
+void closure_set(   item_set&s,item_list&I0,
+                    prods*stmts,
+                    const int num_syms,
+                    parser::syms_var_table*svt)
+{
+    item_list* il;
+    s.set_syms(num_syms);
+    s.add(I0);
+    int size;
+    item* it;
+    item_list tmp1;
+    //for each Item Set in the s
+    for(int i = 0; i < s.size();i++){
+        //for each context grammer symbols
+        //Because 0 is the empty symbol,ignore it
+        for(int k = 1;k < num_syms;k++){
+            il = &(s.at(i));
+            tmp1.seq.reserve(10);
+            for(int j = 0;j < il -> size();j++){
+                it = &(il -> at(j));
+                if(it -> now < it -> size()){
+                    if(it -> at(it -> now) == k){
+                        if(it -> at(it -> now) == k){
+                            item tmp(it -> now +1,it -> l,it -> r,it -> a);
+                            if(!tmp1.find(tmp)){
+                                tmp1.push(tmp);
+                                closure(tmp1,stmts,svt);
+                            }
+                        }
+                    }
+                }else{
+                    if(it -> l != -1){
+                        s.atab[i][k] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
+                    }else{
+                        s.atab[i][k] = action_node(REDUCE,0);
+                    }
+                }
+            }
+            if(tmp1.size() > 0){
+                int z;
+                int f = s.find(tmp1);
+                if(f < 0){
+                    f = s.add(tmp1);
+                }
+                s.atab[i][k] = action_node(JUSTGO,f);
+            }
+            tmp1.clear();
+        }
+    }
+}
+
+void closure_set(   item_set&s,item_list&I0,
+                    prods*stmts,std::vector< std::set<int> >&ffsm,
+                   const int num_syms)
+{
+    item_list* il;
+    s.set_syms(num_syms);
+    s.add(I0);
+    int size;
+    item* it;
+    item_list tmp1;
+    //for each Item Set in the s
+    for(int i = 0; i < s.size();i++){
+        tmp1.seq.reserve(10);
+        //for each context grammer symbols
+        //Because 0 is the empty symbol,ignore it
+        for(int k = 1;k < num_syms;k++){
+            il = &(s.at(i));
+            for(int j = 0;j < il -> size();j++){
+                it = &(il -> at(j));
+                if(it -> now < it -> size()){
+                    if(it -> at(it -> now) == k){
+                        if(it -> at(it -> now) == k){
+                            item tmp(it -> now +1,it -> l,it -> r,it -> a);
+                            if(!tmp1.find(tmp)){
+                                tmp1.push(tmp);
+                                closure(tmp1,ffsm,stmts);
+                            }
+                        }
+                    }
+                }else{
+                    if(it -> l != -1){
+                        s.atab[i][k] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
+                    }else{
+                        s.atab[i][k] = action_node(REDUCE,0);
+                    }
+                }
+            }
+            if(tmp1.size() > 0){
+                int z;
+                int f = s.find(tmp1);
+                if(f < 0){
+                    f = s.add(tmp1);
+                }
+                s.atab[i][k] = action_node(JUSTGO,f);
+            }
+            tmp1.clear();
+        }
+    }
+}
+
 /*
 #var S,L,R;
 #sym EQ,STAR,i;
@@ -604,11 +843,32 @@ int main()
     lexer::lexer* l = new lexer::lexer(io);
     parser* p = new parser(l);
     prods* ss = p -> getstmts();
+    std::vector<std::set<int> > ffsm;//cache the first set of each symbol
 
     std::cout<<"The map table:\n";
     p -> print_def_table();
-
     svt = &(p -> ratable);
+    ffsm.reserve(p -> number_of_symbols());
+    ffsm.resize(p -> number_of_symbols());
+    /*calculate each symbol's first set*/
+    
+    for(int i = 0; i < p -> number_of_symbols();i++){
+        first_sym(  i,ffsm[i],
+                    has_visited,has_empty,
+                    ss,svt );
+        has_visited.clear();
+        has_empty.clear();
+    }
+
+    std::cout<<"The first table:\n";
+    for(int i = 0;i < p -> number_of_symbols();i++){
+        std::cout<<i<<":";
+        for(flag_set::iterator iter = ffsm[i].begin();iter != ffsm[i].end();iter++){
+            std::cout<<*iter<<" ";
+        }
+        std::cout<<std::endl;
+    }
+
     for(prods::map::iterator iter = ss -> seq.begin();
         iter != ss -> seq.end();
         iter++){
@@ -645,17 +905,32 @@ int main()
         if(sym >= 0)
             syml.push_back(sym);
         else{
+
             if(syml.size() == 0)
                 break;
+            std::cout<<"Orignal:\n";
             first_sym(syml,first_set,
                       has_visited,has_empty,
                       ss,svt);
+
             for(flag_set::iterator iter = first_set.begin();
                 iter != first_set.end();
                 iter ++){
                     std::cout<<*iter<<" ";
             }
             std::cout<<std::endl;
+
+            std::cout<<"After Optimazing:\n";
+            first_set.clear();
+            first_sym(syml,first_set,ffsm);
+            
+            for(flag_set::iterator iter = first_set.begin();
+                iter != first_set.end();
+                iter ++){
+                    std::cout<<*iter<<" ";
+            }
+            std::cout<<std::endl;
+
             syml.clear();
             first_set.clear();
             has_visited.clear();
@@ -667,17 +942,24 @@ int main()
 #define END_SYM 1
 
     item_list I0;
-    item tmp(0,0,NULL,END_SYM);//the lookahead symbols is $
+    item tmp(0,-1,NULL,END_SYM);//the lookahead symbols is $
     for(parser::list::iterator iter = p -> begin.begin();
             iter != p -> begin.end();
             iter++){
             right*temp = new right;
             temp -> add(*iter);
-            tmp.set(0,0,temp,END_SYM);
+            tmp.set(0,-1,temp,END_SYM);
             I0.push(tmp);
     }
+    item_list I0_bk = I0;
+    std::cout<<"Original:\n";
     closure(I0,ss,svt);
-
+    I0.print();
+    I0.clear();
+    
+    I0 = I0_bk;
+    std::cout<<"After optimazing:\n";
+    closure(I0,ffsm,ss);
     I0.print();
 
     /*
@@ -685,6 +967,11 @@ int main()
      */
 
 #undef END_SYM
+
+    std::cout<<"Calculate the closure sets:"<<std::endl;
+    item_set is;
+    closure_set(is,I0,ss,ffsm,p -> number_of_symbols());
+    is.print();
 end:
 
     delete p;
