@@ -19,9 +19,9 @@ ptest:$(OBJS2)
 cclr4.o:cclr4.cpp reserved.o kb_io.o file_io.o token_storage.o
 	$(CPPC) $(CPPFLAGS) cclr4.cpp
 
-lexer.o:lexer.cpp reserved.o token_storage.o lexer.h real.h num.h\
+lexer.o:lexer.cpp reserved.o token_storage.o lexer.h \
         tag.h type.h\
-        word.h lexer.h tag.h type.h str.h token.h iol.h
+        word.h lexer.h tag.h type.h token.h iol.h
 	$(CPPC) $(CPPFLAGS) lexer.cpp
 
 reserved.o:reserved.cpp type.h word.h

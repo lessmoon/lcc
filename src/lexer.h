@@ -1,13 +1,10 @@
 #ifndef _LEXER_H
 #define _LEXER_H
-//#include"instream.h"
+
 #include"token.h"
 #include"word.h"
-#include"real.h"
-#include"num.h"
 #include"tag.h"
 #include"type.h"
-#include"str.h"
 #include"iol.h"
 #include"token_storage.h"
 
@@ -25,8 +22,6 @@ namespace lexer
             typedef std::map<string,word_ptr>  w_table;
             typedef system::elem_t             elem_t;
             typedef token*                     token_ptr;
-            typedef num::num_t                 num_t;
-            typedef real::real_t               real_t;
             typedef w_table::value_type        pair;           
             typedef w_table::iterator          tab_iter; 
             typedef system::iol                iol;
