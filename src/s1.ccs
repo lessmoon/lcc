@@ -1,0 +1,11 @@
+#var s;
+#sym i,e,others;
+
+!s = i s
+     |i s e s
+     |others;
+
+*s;
+-1
+-1
+-1

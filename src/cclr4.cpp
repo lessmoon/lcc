@@ -435,6 +435,7 @@ struct item_list{
             std::cout<<seq[i].toString()<<std::endl;
         }
     }
+
     void clear()
     {
         seq.clear();
@@ -713,6 +714,66 @@ struct item_set{
             std::cout<<std::endl;
         }
         std::cout<<std::endl;
+        /*Emit table*/
+        std::cout<<"int cctab["<<size()<<"]["<<num_syms<<"][2]="<<"{\n";
+        for(int i = 0;i < size();i++){
+            std::cout<<"{";
+            for(int j = 0;j < num_syms;j++){
+                std::cout<<"{"<<atab[i][j].t<<","<<atab[i][j].where<<"}";
+                if(j != num_syms - 1)
+                    std::cout<<",";
+            }
+            std::cout<<"}";
+            if(i != size() - 1)
+                std::cout<<",";
+            std::cout<<"\n";
+        }
+        std::cout<<"};\n";
+        /*TODO:emit cc parser machine code here*/
+#define print(x) std::cout<<(x);
+        print("parser(){\n");
+            print("stack<int> status;\n");
+            print("stack<int> products;\n");
+            print("int sym,top;\n");
+            print("status.push(0);//push the start status\n");
+            print("products.push(1);//push the end symbol to the products");
+            print("sym = lexer.scan();\n");
+            print("top = status.top();\n");
+            print("while(true){\n");
+                print("\tif(atab[top][sym][0] == SEND){\n");
+                print("\tproducts.push(sym);\n");
+                print("\tstatus.push(atab[top][sym][1]);\n");
+                print("\tsym = lexer.scan();\n");
+                print("\t}else if(atab[top][sym][0] == REDUCE){\n");
+                print("\t\tif(atab[top][sym][1] == 0){//it is the accept position\n");
+                print("\t\t\tbreak;\n");
+                print("\t\t}\n");
+                print("\t\tswitch(atab[top][sym][1]){\n");
+                /*
+                 *TODO:generate every production!
+                 *     get the length of every product and pop the symbols in the stack
+                 */
+                #if 0
+                for(int i = 0; i < number_of_products;i++){
+                    print("case ");print(i);print(":\n{");
+                    print("//reduce ");print(prod -> l);print("=>");print(prod -> r);print("\n");
+                    for(int j = 0;j < length_of_product;j++)
+                        print("products.pop();\n");
+                    print("top = status.top();\n");
+                    print("products.push(prod -> l);\n");
+                    print("status.push(atab[top][prod -> l][1]);\n");
+                    print("}\n");
+                }
+                #endif
+                //print("");
+                /**/
+                print("\t\t}\n");
+                print("\t}else{\n");
+                print("\t\terror();\n");
+                print("\t}\n");
+            print("}\n");
+        print("}//function parser()\n");
+#undef print
     }
 
     int find(const item_list&z)const
@@ -722,7 +783,7 @@ struct item_set{
                 return j;
         return -1;
     }
-};//struct item_set
+};//struzct item_set
 
 void closure_set(   item_set&s,item_list&I0,
                     prods*stmts,
@@ -806,6 +867,22 @@ void closure_set(   item_set&s,item_list&I0,
                         }
                     }
                 }else{
+                    if(it -> l != -1){
+                        /*it should be reduced now!*/
+                        if(s.atab[i][it -> a].t != ERROR){
+                            if(!(s.atab[i][it -> a].t == REDUCE && s.atab[i][it ->a].where == stmts -> get_id(it -> l,it -> r)))
+                            std::cerr<<"At I"<<i<<" has conflict with "<<(s.atab[i][it -> a].t == SEND?'s'
+                                                                        :(s.atab[i][it -> a].t == REDUCE)?'r'
+                                                                        :'n')<<s.atab[i][it ->a].where
+                                                                        <<" and r"<<stmts -> get_id(it -> l,it -> r)<<"\n";
+                            //throw 78;
+                        }
+                        s.atab[i][it -> a] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
+                    }else{
+                        /*it is the state of accept*/
+                        if(k == 1)
+                            s.atab[i][k] = action_node(REDUCE,0);
+                    }
                 }
             }
             if(tmp1.size() > 0){
@@ -814,30 +891,21 @@ void closure_set(   item_set&s,item_list&I0,
                 if(f < 0){
                     f = s.add(tmp1);
                 }
+                if(s.atab[i][k].t != ERROR){
+                  if(!(s.atab[i][it -> a].t == REDUCE && s.atab[i][it ->a].where == stmts -> get_id(it -> l,it -> r)))
+                     std::cerr<<"At I"<<i<<" has conflict with "<<(s.atab[i][k].t == SEND?'s'
+                                                                 :(s.atab[i][k].t == REDUCE)?'r'
+                                                                 :'n')<<s.atab[i][k].where
+                                                                <<" and s"<<f<<"\n";
+                   
+                    //throw 889;
+                }
                 s.atab[i][k] = action_node((sym_type(k)==SYM?SEND
                                             :JUSTGO),f);
             }
             tmp1.clear();
         }
-    }
 
-    for(int i = 0 ;i < s.size();i++){
-        il = &(s.at(i));
-        for(int k = 1;k < num_syms;k++){
-            for(int j = 0;j < il -> size();j++){
-                it = &(il -> at(j));
-                if(it -> now == it -> size()){
-                    if(it -> l != -1){
-                        /*it should be reduced now!*/
-                        s.atab[i][it -> a] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
-                    }else{
-                        /*it is the state of accept*/
-                        if(k == 1)
-                            s.atab[i][k] = action_node(REDUCE,0);
-                    }
-            }
-        }
-        }
 #undef sym_type
     }
 }
