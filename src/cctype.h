@@ -16,6 +16,7 @@ namespace cctype{
         typedef right self;
     public:
         list seq;
+    public:
         /*add a symbol to the end of the list*/
         void add(const sym_t id);
         /*random access of a symbol in the list*/
@@ -36,6 +37,8 @@ namespace cctype{
         typedef right*                  right_ptr;
         typedef std::vector<right_ptr>  list;
         typedef rightlist               self;
+    public:
+        list seq;
     public:
         /*add a right part of product */
         void add(right_ptr r);
@@ -60,15 +63,15 @@ namespace cctype{
     public:
         map seq;
         id_map idseq;
-        //int lastid;
+        int lastid;
     public:
-        //prods(){}
+        prods();
         /*add a product(l => r)*/
         void    add(const sym_t l,right_ptr r);
         /*get right part of a left symbol,if not found return NULL*/
         rl_ptr  at(const sym_t left);
         /*get index of a production*/
-        int get_id(const sym_t left,right_ptr r);
+        int get_id(const sym_t left,right_ptr r)const;
         /*get number of all products*/
         int size()const;
     };//struct prods
@@ -81,13 +84,13 @@ namespace cctype{
     public:
         int now;//begin at 0
         sym_t l;//the left id
-        sym_t r;
+        right_ptr r;
         sym_t a;
     public:
         /*constructor*/
-        item(const int now,const sym_t l,right_ptr r,const sym_t a = 0);
+        item(const int now,const sym_t l,right_ptr r,const sym_t a );
         /*set every value*/
-        void set(const int now,const sym_t l,right_ptr r,const sym_t a = 0);
+        void set(const int now,const sym_t l,right_ptr r,const sym_t a );
         /*equal test*/
         bool operator==(const self&b)const;
 
@@ -127,11 +130,12 @@ namespace cctype{
         void clear();
     };//struct item_list
 
-    /*item set*/
+    /*item sets*/
     struct item_set{
     public:
-        typedef std::vector<item_list> seq;
+        typedef std::vector<item_list> list;
     public:
+        list seq;
         /**/
     public: 
         /*add an item_list ,return the index of the new item_list*/

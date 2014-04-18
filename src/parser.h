@@ -61,7 +61,7 @@ namespace ccparser{
         parser(lexer* lex);
         /*destructor*/
         ~parser();
-    public:
+    private:
         /*read a token from the input buffer*/
         void read();
         /*match tag,if not matched throw error*/
@@ -73,7 +73,7 @@ namespace ccparser{
          * just for conveniece,convert the look token to string
          */
         string toString();
-    public:
+    private:
         /*define a symbol,if it's existed throw error*/
         void do_def(const string& name,const TYPE t);
         /*get type of the */
@@ -82,6 +82,7 @@ namespace ccparser{
         /*top-down parser*/
         /*parser&generate result*/
         result*  stmts();
+    private: 
         /*get the start symbols*/
         void begin();
         /*get the definations of symbols*/

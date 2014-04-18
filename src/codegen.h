@@ -2,10 +2,13 @@
 #define _CODE_GEN_
 
 #include"parser.h"
+#include"cctype.h"
 
-namespace codegen{
-
+namespace cccodegen{
     class codegen{
+    public:
+        
+    private:
         
     };//class codegen  
 
