@@ -1,3 +1,4 @@
+Have exception with `out_of_range' in the file cclr4.cpp in function closure
 /* 
  * Fixed
  * Reason:
