@@ -11,9 +11,9 @@
 
 namespace ccparser{
     enum TYPE{UNKNOWN = -1,VAR,TERM};
-    
+
     struct result{
-    public:    
+    public:
         typedef cctype::sym_t       sym_t;
         typedef cctype::prods       prods;
         typedef lexer::token        token;
@@ -23,11 +23,29 @@ namespace ccparser{
         typedef std::set<sym_t>     symbol_set;
         typedef std::map<string,sym_t> symbol_table;
         typedef symbol_table::iterator iterator;
+        typedef cctype::prods::prod  prod_t;
     public:
         symbol_table  def_table;
         symbol_type   type_table;
         symbol_set    start_symbols;
         prods         productions;
+    public:
+        const string&get_name(const sym_t s)
+        {
+            iterator iter = def_table.begin();
+            while(iter != def_table.end()){
+                if(iter -> second == s)
+                    return iter -> first;
+                iter++;
+            }
+            return "";//Not found!TODO not safe!
+        }
+
+        const prod_t&get_prod(const int idx)const
+        {
+            return productions.get_prod(idx);
+        }
+
     };//result
 
     /*
@@ -82,7 +100,7 @@ namespace ccparser{
         /*top-down parser*/
         /*parser&generate result*/
         result*  stmts();
-    private: 
+    private:
         /*get the start symbols*/
         void begin();
         /*get the definations of symbols*/

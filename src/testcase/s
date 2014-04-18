@@ -2,8 +2,8 @@
      compare,
      selection,
      iteration,
-     init_list,stmts,stmt,expr,bool_,join,equality,rel,add,term,unary,postfix,factor;
-#sym LCB,RCB,LSB,RSB,COMMA,SEM,
+     init_list,stmts,stmt,expr,bool_,join,equality,rel,add,term_,unary,postfix,factor;
+#term LCB,RCB,LSB,RSB,COMMA,SEM,
      ID,BREAK,
      BASIC,NUM,IF,ELSE,FOR,DO,WHILE,REAL,TRUE,FALSE,LB,RB,
      INC,DEC,PLUS,MIN,DIV,MULT,
@@ -32,8 +32,8 @@
 !factor = ID|NUM|RB expr LB;//May be string here
 !postfix = factor | factor LSB expr RSB | factor INC | factor DEC;
 !unary = postfix | NOT postfix | MIN postfix;
-!term = term MULT unary|term DIV unary | unary;
-!add  = add PLUS term | add MIN term | term;
+!term_ = term_ MULT unary|term_ DIV unary | unary;
+!add  = add PLUS term_ | add MIN term_ | term_;
 !rel = rel GT add|rel LS add|rel GT add|rel LE add|add;
 !equality = equality EQ rel | equality NE rel |rel;
 !join = join AND equality | equality;

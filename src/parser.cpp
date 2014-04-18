@@ -10,6 +10,7 @@ namespace ccparser{
    parser::~parser()
    {
         /*clear the things created by itself*/
+        /*TODO: Delete all the right part created by it*/
         if(res != NULL)
             delete res;
    }
@@ -99,6 +100,8 @@ loop:
             this -> error("Undefined symbol `" + tmp + "' found here");
         }
         iter = def_table -> find(tmp);
+        if(start_symbols -> count(iter -> second) == 0)
+            start_symbols -> insert(iter -> second);
         this -> read();
         if(look -> tag == ','){
             this -> read();

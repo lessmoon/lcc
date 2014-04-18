@@ -78,7 +78,6 @@ namespace cctype{
     /*struct prods*/
 
     prods::prods()
-    :lastid(0)
     {}
 
     void prods::add(const sym_t l,right_ptr r)
@@ -92,7 +91,8 @@ namespace cctype{
             //idseq.insert(id_map::value_type(l,r));
             seq.insert(map::value_type(l,rl));
         }
-        lastid++;
+        prod tmp = {l,r};
+        pseq.push_back(tmp);
     }
 
     prods::rl_ptr prods::at(const sym_t left)
@@ -101,17 +101,23 @@ namespace cctype{
         return ((iter == seq.end())?NULL : iter -> second);
     }
 
+    const prods::prod&prods::get_prod(const int idx)const
+    {
+        /*TODO:create a sequence to store every product!*/
+        return pseq.at(idx);
+    }
+
     int prods::get_id(const sym_t l,right_ptr r)const
     {
-        /*TODO: it's not safe!*/
-        int  id = idseq.at(l);
-        id += seq.at(l) -> get_id(r);
-        return id;
+        for(int i = 0;i < pseq.size();i++)
+            if(pseq.at(i).l == l && pseq.at(i).r == r)
+                return i;
+        return -1;
     }
 
     int prods::size()const
     {
-        return lastid;
+        return pseq.size();
     }
     /*struct item*/
 
@@ -194,7 +200,7 @@ namespace cctype{
     {
         return seq.size();
     }
-    
+
     void item_list::reserve(const int sz)
     {
         seq.reserve(sz);
@@ -224,9 +230,10 @@ namespace cctype{
 
     int item_set::find(const item_list& z)const
     {
-        for(int j = size() -1;j >= 0 ;j--)
+        int j;
+        for(j = size() -1;j >= 0 ;j--)
             if(z == seq[j])
-                return j;
-        return -1;
+                break;
+        return j;
     }
 };//namespace cctype

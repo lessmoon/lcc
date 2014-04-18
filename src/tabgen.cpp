@@ -1,4 +1,22 @@
 #include"tabgen.h"
+#include<iostream>
+
+namespace{
+    void p_right(cctype::right* r)
+    {
+        for(int i = 0;i < r -> size();i++)
+            std::cout<< r -> at(i)<<" ";
+    }
+
+    void pr_il(cctype::item_list*il)
+    {
+        for(int i = 0;i < il -> size();i++){
+            std::cout<<il -> at(i).l<<"=>";
+            p_right(il -> at(i).r);
+            std::cout<<" ["<<il -> at(i).now<<"]"<<"\n";
+        }
+    }
+};
 
 namespace cctabgen{
     tabgen::tabgen()
@@ -7,7 +25,7 @@ namespace cctabgen{
     {
         srtable.clear();
     }
-  
+
     void tabgen::set_para(info* para)
     {
         this -> clear();
@@ -21,14 +39,49 @@ namespace cctabgen{
 
     tabgen::table*  tabgen::calculate()
     {
+#define END_SYM     1
         if(!para)
             return NULL;
         if(!srtable.empty())
             return &srtable;
-        /*TODO*/
+        this -> clear();
+        sym_set has_visited;
+        ffsm.reserve(svt -> size());
+        ffsm.resize(svt -> size());
 
+        /*At first we calculate the first symbols set of every symbol*/
+        for(sym_t i = 0 ; i < svt -> size() ; i++){
+            /*Just in case!*/
+            if(svt -> at(i) != ccparser::VAR
+               || ps -> at(i) != NULL)
+                this -> first_term(i,ffsm[i],has_visited);
+            has_visited.clear();
+            has_empty.clear();
+        }
+        item_list I0;
 
+        item tmp(0,-1,NULL,END_SYM);
+        /*Wrong!*/
+        for(sym_set::iterator iter = str_sym -> begin();
+            iter != str_sym -> end();
+            iter++){
+            /*TODO:collect the right created here*/
+            right* temp = new right;
+            try{
+                temp -> add(*iter);
+                tmp.set(0,-1,temp,END_SYM);
+                I0.add(tmp);
+            }catch(...){
+                delete temp;
+                throw ;
+            }
+        }
+        closure(I0);
+        /*TEST*/
+        pr_il(&I0);
+        this -> closure_set(I0);
         return &srtable;
+#undef  END_SYM
     }
 
     bool tabgen::first_term(const sym_t sym,sym_set& fset,
@@ -37,7 +90,6 @@ namespace cctabgen{
 #define sym_type(x) (svt->at(x))
 #define EMPTY       0
         bool res = false;
-        int var;
         int size;
         bool test;
         right* tmp;
@@ -54,7 +106,7 @@ namespace cctabgen{
         has_visited.insert(sym);//put the sym into visited
         rl = ps -> at(sym);
         if(rl == NULL)
-            this -> error("Symbol ""has not productions");
+            this -> error("Symbol `" +  para -> get_name(sym) + "' has no productions");
 
         size = -1;
         while(size < (int)fset.size()){
@@ -84,26 +136,18 @@ namespace cctabgen{
 
     bool tabgen::first_term(const sym_seq&syms,sym_set&fset)
     {
-        bool res = false;
-        int size = -1;
-        sym_set has_visited;
-        while(size < (int)fset.size()){
-            size = fset.size();
-            for(int i = 0;i < syms.size();i++){
-                res = first_term(syms[i],fset,has_visited);
-                if(!res){
-                    break;
-                }else{
-                    has_empty.insert(syms[i]);
-                }
+        for(int i = 0;i < syms.size();i++){
+            sym_set&tmp = ffsm[syms[i]];
+            fset.insert(tmp.begin(),tmp.end());
+            if(tmp.count(0) == 0){
+                break;
             }
         }
-        return res;
+        return fset.count(0);
     }
- 
+
     void tabgen::closure(item_list&I)
     {
-    loop:
         int size;
         right*r;
         int l;
@@ -120,6 +164,9 @@ namespace cctabgen{
             for(int i = 0;i < I.size();i++){
                 r = I.at(i).r;
                 now = I.at(i).now;
+                /*Be careful !*/
+                if(now >= r -> size())
+                    continue;
                 l = r -> at(now);
                 rl = ps -> at(l);
                 if(rl == NULL)//if it is not a var symbol
@@ -151,19 +198,19 @@ namespace cctabgen{
 
     void tabgen::closure_set(item_list&I0)
     {
-    #define sym_type(x) (svt -> at(x))
+#define sym_type(x) (svt -> at(x))
         item_set s;
         item_list* il;
-        int size;
         s.add(I0);
-        item* it;
+        this -> addline();
+        item* it = NULL;
         item_list tmp1;
         //for each Item Set in the s
         for(int i = 0; i < s.size();i++){
             tmp1.reserve(10);
             //for each context grammer symbols
             //Because 0 is the empty symbol,ignore it
-            for(int k = 1;k < svt -> size();k++){
+            for(sym_t k = 1;k < svt -> size();k++){
                 il = &(s.at(i));
                 for(int j = 0;j < il -> size();j++){
                     it = &(il -> at(j));
@@ -181,14 +228,14 @@ namespace cctabgen{
                         if(it -> l != -1){
                             /*it should be reduced now!*/
                             if(srtable[i][it -> a].t != ERROR){
-                                if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r)))
+                                if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r) + 1 ))
                                     std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][it -> a].t == SHIFT?'s'
                                                                                 :(srtable[i][it -> a].t == REDUCE)?'r'
                                                                                 :'n')<<srtable[i][it ->a].where
-                                                                                <<" and r"<<ps -> get_id(it -> l,it -> r)<<"\n";
+                                                                                <<" and r"<<ps -> get_id(it -> l,it -> r)+1<<"\n";
                                 //throw 78;
                             }
-                            srtable[i][it -> a] = action_node(REDUCE,ps -> get_id(it -> l,it -> r));
+                            srtable[i][it -> a] = action_node(REDUCE,ps -> get_id(it -> l,it -> r) + 1);
                         }else{
                             /*it is the state of accept*/
                             if(k == 1)
@@ -197,42 +244,41 @@ namespace cctabgen{
                     }
                 }
                 if(tmp1.size() > 0){
-                    int z;
                     int f = s.find(tmp1);
                     if(f < 0){
-                        f = s.add(tmp1);
                         this -> addline();
+                        f = s.add(tmp1);
                     }
                     if(srtable[i][k].t != ERROR){
-                      if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r)))
+                      if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r) + 1 ))
                          std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][k].t == SHIFT?'s'
                                                                      :(srtable[i][k].t == REDUCE)?'r'
                                                                      :'n')<<srtable[i][k].where
                                                                     <<" and s"<<f<<"\n";
-                       
-                        //throw 889;
+
                     }
                     srtable[i][k] = action_node((sym_type(k)==ccparser::TERM?SHIFT
                                                                 :JUSTGO),f);
                 }
                 tmp1.clear();
             }
-    #undef sym_type
         }
+
+#undef sym_type
     }
-    
+
     void tabgen::clear()
     {
         srtable.clear();
         ffsm.clear();
         has_empty.clear();
     }
-    
+
     void tabgen::error(const string&info)
     {
         throw info;
     }
-    
+
     void tabgen::addline()
     {
         srtable.reserve(srtable.size() + 1);

@@ -8,7 +8,7 @@
 namespace cctype{
     typedef int     sym_t;
     typedef std::string string;
-    
+
     /*the right part of a product*/
     struct right{
     public:
@@ -26,11 +26,12 @@ namespace cctype{
         /*judge if it is *EQUAL* with b*/
         bool operator==(const self&b)const;
         /*TODO:get the string of the product*/
+
 #if 0
         string toString()const;
 #endif
     };//struct right
-    
+
     /*the right part seq of a left symbol (of products)*/
     struct rightlist{
     public:
@@ -60,16 +61,20 @@ namespace cctype{
         typedef rightlist*              rl_ptr;
         typedef std::map<sym_t,rl_ptr>  map;
         typedef std::map<sym_t,int>     id_map;
+        typedef struct{sym_t l;right_ptr r;}prod;
+        typedef std::vector<prod>       prod_seq;
     public:
-        map seq;
-        id_map idseq;
-        int lastid;
+        map         seq;
+        prod_seq    pseq;
+
     public:
         prods();
         /*add a product(l => r)*/
         void    add(const sym_t l,right_ptr r);
         /*get right part of a left symbol,if not found return NULL*/
         rl_ptr  at(const sym_t left);
+        /*get right part by its index*/
+        const prod&get_prod(const int idx)const;
         /*get index of a production*/
         int get_id(const sym_t left,right_ptr r)const;
         /*get number of all products*/
@@ -96,7 +101,7 @@ namespace cctype{
 
         /*random access of the symbol in the right part*/
         sym_t at(const int idx)const;
-        
+
         /*get the number of the symbols in the right part*/
         int size()const;
     };//struct item
@@ -140,7 +145,7 @@ namespace cctype{
     public:
         list seq;
         /**/
-    public: 
+    public:
         /*add an item_list ,return the index of the new item_list*/
         int add(const item_list&i);
         /*random access of the item_list*/
