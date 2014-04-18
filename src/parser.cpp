@@ -2,11 +2,11 @@
 
 namespace ccparser{
    /*class parser*/
-   
+
    parser::parser(lexer* lex)
-   :res(NULL),def_table(NULL),type_table(NULL),start_symbols(NULL),
-   look(NULL),productions(NULL){}
-   
+   :def_table(NULL),type_table(NULL),start_symbols(NULL),
+   productions(NULL),lex(lex),look(NULL),res(NULL){}
+
    parser::~parser()
    {
         /*clear the things created by itself*/
@@ -16,36 +16,37 @@ namespace ccparser{
 
    void parser::read()
    {
-        lex -> scan();
+        look = lex -> scan();
    }
-   
+
    bool parser::match(const tag_t tag)
    {
         if(look -> tag == tag){
             this -> read();
             return true;
         } else {
-            this -> error("Failed to match ");/*TODO*/
+            this -> error(string("Failed to match `")+(char (tag)) + "'(`" + (char(look -> tag)) + "' found here)");/*TODO*/
         }
+        return false;/*to kill warning*/
    }
-   
+
    void parser::error(const string&info)
    {
         /*TODO throw exception*/
         throw info;
    }
-   
+
    void parser::do_def(const string& name ,const TYPE t)
    {
         if (def_table -> find(name) != def_table -> end())
-			this -> error(name + " redefined");
+			this -> error(name + " is redefined");
 		else{
-			def_table -> insert(  symbol_table::value_type(name, 
+			def_table -> insert(  symbol_table::value_type(name,
 			                    type_table -> size())   );
             type_table -> push_back(t);
         }
    }
-   
+
    TYPE parser::sym_type(const string& name)const
    {
    		symbol_table::const_iterator iter = def_table -> find(name);
@@ -54,7 +55,7 @@ namespace ccparser{
 		else
 			return (type_table -> at(iter -> second));
    }
-   
+
    result*  parser::stmts()
    {
         /*delete the result if it had before*/
@@ -79,14 +80,14 @@ namespace ccparser{
             this -> begin();
         return res;
    }
-   
+
    void parser::begin()
    {
         string tmp;
         iterator iter;
         match('*');
 loop:
-        tmp = this -> toString(); 
+        tmp = this -> toString();
         switch(this -> sym_type(tmp)){
         case VAR:
             break;
@@ -95,7 +96,7 @@ loop:
             break;
         case UNKNOWN:
         default:
-            this -> error("Undefined symbols `" + tmp + "' found here");
+            this -> error("Undefined symbol `" + tmp + "' found here");
         }
         iter = def_table -> find(tmp);
         this -> read();
@@ -105,7 +106,7 @@ loop:
         }
         match(';');
    }
-   
+
    void parser::def()
    {
         TYPE t;
@@ -122,7 +123,7 @@ loop:
             this -> do_def(this -> toString(),t);
             this -> read();
         } while(look -> tag == ',');
-        
+
         match(';');
    }
 
@@ -141,7 +142,7 @@ loop:
             break;
         case UNKNOWN:
         default:
-            this -> error("Undefined symbols `" + leftname + "' found here");
+            this -> error("Undefined symbol `" + leftname + "' found here");
         }
         this -> read();
         match('=');
@@ -150,7 +151,7 @@ loop:
         productions -> add(def_table -> find(leftname) -> second,tmp);
         if( look -> tag == '|' ){
             this -> read();
-            goto loop;       
+            goto loop;
         }
         match(';');
    }
@@ -162,9 +163,9 @@ loop:
         try{
 		    while (look -> tag ==::lexer::tag::ID || look -> tag == '%') {
 		        tmp = this -> toString();
-			    if (sym_type(tmp) == UNKNOWN)	
+			    if (sym_type(tmp) == UNKNOWN)
 			        //not defined
-				   this -> error("Undefined symbols `" + tmp + "' found here");
+				   this -> error("Undefined symbol `" + tmp + "' found here");
 			    else
 				    res -> add(def_table -> find(tmp) -> second);
 			    this -> read();
@@ -185,6 +186,7 @@ loop:
 		    return (static_cast < ::lexer::word* >(look))->lexme;
 		else
 		    this -> error("Unknown error");
+        return "";/*to kill warning*/
     }
 
 };//namespace parser

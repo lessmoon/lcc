@@ -37,7 +37,7 @@ namespace cctype{
 
     void rightlist::add(right_ptr r)
     {
-        seq.push_back(r); 
+        seq.push_back(r);
     }
 
     int rightlist::size()const
@@ -59,7 +59,7 @@ namespace cctype{
     {
         list::const_iterator iter = seq.begin();
         while(iter != seq.end()){
-            if(*iter == r) 
+            if(*iter == r)
                 return true;
             else if(*(*iter) == *r)/**/
                 return true;
@@ -70,8 +70,8 @@ namespace cctype{
 
     int rightlist::get_id(const right_ptr r)const
     {
-        for(int i = 0;i < seq.size();i++)
-            if(r == seq[i])
+        for(int i = 0;i < this -> size();i++)
+            if(r == this -> at(i))
                 return i;
         return -1;
     }
@@ -94,11 +94,11 @@ namespace cctype{
         }
         lastid++;
     }
-    
+
     prods::rl_ptr prods::at(const sym_t left)
     {
         map::iterator iter = seq.find(left);
-        return ((iter == seq.end())?NULL : iter -> second); 
+        return ((iter == seq.end())?NULL : iter -> second);
     }
 
     int prods::get_id(const sym_t l,right_ptr r)const
@@ -141,7 +141,7 @@ namespace cctype{
     {
         return r -> size();
     }
-    
+
     /*struct item_list*/
 
     item_list::item_list()
@@ -150,13 +150,13 @@ namespace cctype{
     item_list::item_list(const self&z)
     :seq(z.seq)
     {}
-    
+
     item_list&item_list::operator=(const item_list&z)
     {
         seq = z.seq;
         return *this;
     }
-    
+
     bool item_list::operator==(const item_list&z)const
     {
         if(z.size() != size())

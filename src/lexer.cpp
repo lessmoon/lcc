@@ -2,11 +2,39 @@
 
 #define CH_IS(C1,C2) ((C1)==(C2))
 #define CH_IS_NOT(C1,C2) (!CH_IS(C1,C2))
+namespace lexer{
+    const int MAX_LEXME_STR   =   0x100;
+};
+
+namespace {
+    inline bool is_digit(const char c)
+    {
+        return (c >= '0' && c <= '9');
+    }
+
+    inline bool is_alpha(const char c)
+    {
+        return (c >= 'A' && c <= 'Z')
+                || (c >= 'a' && c <= 'z');
+    }
+
+    inline bool is_hex(const char c)
+    {
+        return is_digit(c)|| (c >= 'a' && c <= 'f');
+    }
+
+    inline bool is_oct(const char c)
+    {
+        return (c >= '0' && c <= '7');
+    }
+};
+
 
 namespace lexer{
 
+
     lexer::lexer(iol_ptr sys_io)
-    :peek(' '),lineno(0),sys_io(sys_io)
+    :peek(' '),lineno(1),sys_io(sys_io)
     {
         /*reserve TERM and VAR*/
         this -> reserve(new word("var",tag::VAR));
@@ -38,13 +66,9 @@ namespace lexer{
     lexer::token_ptr lexer::scan()
     {
         string buf = "";
-        num_t num_v = 0;
-        real_t real_v = 0;
-        real_t real_t = 0.1;
         word_ptr w = NULL;
         tab_iter iter;
         token_ptr tok = NULL;
-        char c;
         buf.reserve(MAX_LEXME_STR);
 
         for(;;readch()){

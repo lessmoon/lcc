@@ -1,0 +1,32 @@
+/*normal test*/
+#var a,b,c;
+#term x,y,z;
+#var e;
+#term f;
+#term x1,
+        x2,
+         x3, x4;
+!a = %;
+!a = a b|c|a %;
+!c = a b|c|e|f;
+!c = a | a b c z;
+*a;
+*b,c;
+-1
+/*end test*/
+/*undefined operation test*/
+#undefinedoper z;
+#term a;
+/*end test*/
+/*undefined symbol test*/
+#var a,b;
+#term c;
+!a = v;//case 1
+!e = a;//case 2
+!c = d;//case 3
+/*end test*/
+/*unknown error test*/
+#var a,b;
+#term c;
+!a = 12546//forbidden identifier
+/*end test*/
