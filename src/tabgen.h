@@ -9,10 +9,10 @@
 namespace cctabgen{
     enum action{REDUCE,SHIFT,JUSTGO,ERROR};
     struct action_node{                           
-        action_do t;
+        action t;
         int where;
         action_node(){t = ERROR;where =0;}
-        action_node(action_do t,int where)
+        action_node(action t,int where)
         :t(t),where(where){}
     };
 
@@ -56,7 +56,7 @@ namespace cctabgen{
     private:
         bool first_term(const sym_t sym,sym_set& res,
                         sym_set&has_visited);
-        void first_term(const sym_seq&syms,sym_set&res);
+        bool first_term(const sym_seq&syms,sym_set&res);
         void closure(item_list&I);
         void closure_set(item_list&I);
         void clear();

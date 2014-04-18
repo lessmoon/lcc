@@ -126,6 +126,9 @@ namespace cctype{
         item&at(const int idx);
         /*get number of items in the container*/
         int size()const;
+
+        /*reserve some size to container more*/
+        void reserve(const int sz);
         /*clear all*/
         void clear();
     };//struct item_list

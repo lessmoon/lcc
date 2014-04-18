@@ -5,7 +5,7 @@ namespace cctabgen{
     :para(NULL){}
     tabgen::~tabgen()
     {
-        delete srtable;
+        srtable.clear();
     }
   
     void tabgen::set_para(info* para)
@@ -23,13 +23,16 @@ namespace cctabgen{
     {
         if(!para)
             return NULL;
-        if(srtable)
-            return srtable;
+        if(!srtable.empty())
+            return &srtable;
         /*TODO*/
+
+
+        return &srtable;
     }
 
     bool tabgen::first_term(const sym_t sym,sym_set& fset,
-                            sym_set&has_visited);
+                            sym_set& has_visited)
     {
 #define sym_type(x) (svt->at(x))
 #define EMPTY       0
@@ -39,7 +42,7 @@ namespace cctabgen{
         bool test;
         right* tmp;
         rightlist* rl;
-        if(sym_type(sym) == cctype::TERM){
+        if(sym_type(sym) == ccparser::TERM){
             fset.insert(sym);
             return (sym == EMPTY);
         }
@@ -63,7 +66,7 @@ namespace cctabgen{
                      * A funny bug: Code With Bugs Before is following
                      * res = res || first_sym(...)
                      */
-                    test =  first_sym(  tmp -> at(j),fset,
+                    test =  first_term(  tmp -> at(j),fset,
                                         has_visited) ;
                     if(!test){
                             break;
@@ -79,15 +82,15 @@ namespace cctabgen{
 #undef sym_type//define sym_type(x)
     }
 
-    void tabgen::first_term(const sym_seq&syms,sym_set&fset)
+    bool tabgen::first_term(const sym_seq&syms,sym_set&fset)
     {
         bool res = false;
         int size = -1;
- 
+        sym_set has_visited;
         while(size < (int)fset.size()){
             size = fset.size();
             for(int i = 0;i < syms.size();i++){
-                res = first_sym(syms[i],fset,has_visited);
+                res = first_term(syms[i],fset,has_visited);
                 if(!res){
                     break;
                 }else{
@@ -115,9 +118,9 @@ namespace cctabgen{
         do{
             size = I.size();
             for(int i = 0;i < I.size();i++){
-                r = I.seq[i].r;
-                now = I.seq[i].now;
-                l = r -> var_seq[now];
+                r = I.at(i).r;
+                now = I.at(i).now;
+                l = r -> at(now);
                 rl = ps -> at(l);
                 if(rl == NULL)//if it is not a var symbol
                     continue;
@@ -125,12 +128,12 @@ namespace cctabgen{
                 fset.clear();
                 has_visited.clear();
                 //has_empty.clear();
-                for(int j = now + 1;j < r -> var_seq.size();j++){
-                    seq.push_back(r -> var_seq[j]);
+                for(int j = now + 1;j < r -> size();j++){
+                    seq.push_back(r -> at(j));
                 }
                 seq.push_back(I.seq[i].a);
                 //calculate the first_set of the sym seq
-                first_sym(seq,fset,ffsm);
+                first_term(seq,fset);
                 //for each prod l => ?
                 for(int j = 0; j < rl -> size();j++){
                     tmpr = rl -> at(j);
@@ -152,16 +155,15 @@ namespace cctabgen{
         item_set s;
         item_list* il;
         int size;
-        s.set_syms(num_syms);
         s.add(I0);
         item* it;
         item_list tmp1;
         //for each Item Set in the s
         for(int i = 0; i < s.size();i++){
-            tmp1.seq.reserve(10);
+            tmp1.reserve(10);
             //for each context grammer symbols
             //Because 0 is the empty symbol,ignore it
-            for(int k = 1;k < num_syms;k++){
+            for(int k = 1;k < svt -> size();k++){
                 il = &(s.at(i));
                 for(int j = 0;j < il -> size();j++){
                     it = &(il -> at(j));
@@ -170,7 +172,7 @@ namespace cctabgen{
                             if(it -> at(it -> now) == k){
                                 item tmp(it -> now + 1,it -> l,it -> r,it -> a);
                                 if(!tmp1.find(tmp)){
-                                    tmp1.push(tmp);
+                                    tmp1.add(tmp);
                                     closure(tmp1);
                                 }
                             }
@@ -179,14 +181,14 @@ namespace cctabgen{
                         if(it -> l != -1){
                             /*it should be reduced now!*/
                             if(srtable[i][it -> a].t != ERROR){
-                                if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == stmts -> get_id(it -> l,it -> r)))
-                                    std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][it -> a].t == SEND?'s'
+                                if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r)))
+                                    std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][it -> a].t == SHIFT?'s'
                                                                                 :(srtable[i][it -> a].t == REDUCE)?'r'
                                                                                 :'n')<<srtable[i][it ->a].where
                                                                                 <<" and r"<<ps -> get_id(it -> l,it -> r)<<"\n";
                                 //throw 78;
                             }
-                            srtable[i][it -> a] = action_node(REDUCE,stmts -> get_id(it -> l,it -> r));
+                            srtable[i][it -> a] = action_node(REDUCE,ps -> get_id(it -> l,it -> r));
                         }else{
                             /*it is the state of accept*/
                             if(k == 1)
@@ -202,7 +204,7 @@ namespace cctabgen{
                         this -> addline();
                     }
                     if(srtable[i][k].t != ERROR){
-                      if(!(srtable[i][it -> a].t == REDUCE && s.atab[i][it ->a].where == ps -> get_id(it -> l,it -> r)))
+                      if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r)))
                          std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][k].t == SHIFT?'s'
                                                                      :(srtable[i][k].t == REDUCE)?'r'
                                                                      :'n')<<srtable[i][k].where
@@ -210,19 +212,19 @@ namespace cctabgen{
                        
                         //throw 889;
                     }
-                    srtable[i][k] = action_node((sym_type(k)==TERM?SHIFT
+                    srtable[i][k] = action_node((sym_type(k)==ccparser::TERM?SHIFT
                                                                 :JUSTGO),f);
                 }
                 tmp1.clear();
             }
     #undef sym_type
+        }
     }
     
     void tabgen::clear()
     {
         srtable.clear();
-        if(ffsm)
-            ffsm -> clear();
+        ffsm.clear();
         has_empty.clear();
     }
     

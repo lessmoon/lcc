@@ -194,6 +194,11 @@ namespace cctype{
     {
         return seq.size();
     }
+    
+    void item_list::reserve(const int sz)
+    {
+        seq.reserve(sz);
+    }
 
     void item_list::clear()
     {
