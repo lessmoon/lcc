@@ -88,7 +88,7 @@ namespace cccodegen{
             <<"case xxx: return 1;//end symbol\n";
         for(sym_t i =  2; i < svt -> size() ; i++){
             if(svt -> at(i) == ccparser::TERM){
-                cout<<"case xxx" <<": return "<<para -> get_name(i)<<";\n";
+                cout<<"case xxx" <<": return _LSCC_"<<para -> get_name(i)<<";\n";
             }
         }
         cout<<"default: return 0;\n"
@@ -158,7 +158,7 @@ namespace cccodegen{
 
     void codegen::gen_macro(const string&name,int value)
     {
-        std::cout<<"#define " << name << " " << value << "\n";
+        std::cout<<"#define _LSCC_" << name << " " << value << "\n";
     }
 
     void codegen::gen_include(const string&filename)
