@@ -27,7 +27,7 @@ namespace cccodegen{
         this -> gen_macro("REDUCE",cctabgen::REDUCE);
         this -> gen_sym_def();
         cout<<"class parser{\n";
-            cout<<"static const int cctable["
+            cout<<"static const int cctab["
                 <<tab -> size()<<"]["<<svt -> size()<<"]"<<"[2];\n" 
                 <<"int getc(){\n";
             this -> gen_sym_map();

@@ -3,11 +3,11 @@ OBJS = main.o parser.o cctype.o tabgen.o lexer.o\
         token_storage.o codegen.o
 		
 
-CPPC = g++ -c
+CPPC = g++ -c -O3
 
-LD   = g++ -g
+LD   = g++ -O3
 
-CPPFLAGS =  -g
+CPPFLAGS =  
 
 TAR = mycc
 

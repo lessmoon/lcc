@@ -1,4 +1,4 @@
-#var program,block,decls,decl,init_decl,
+#var program,block,decls,decl,init_decl,idlist,declarator,array_decl,
      compare,
      selection,
      iteration,
@@ -12,14 +12,13 @@
 !program = block ;
 !block   = LCB decls stmts RCB;
 !decls   = decls decl | %;
-!decl    = BASIC ID SEM
-            | BASIC ID ASS expr SEM 
-            | BASIC ID LSB NUM RSB SEM 
-            | BASIC ID LSB NUM RSB ASS LCB init_list RCB SEM;
+!decl    = BASIC idlist SEM;
 !init_list = init_list COMMA expr | expr;
+!idlist  = idlist COMMA declarator|declarator;
+!declarator = ID | ID ASS expr | array_decl;
+!array_decl = ID LSB NUM RSB | ID LSB NUM RSB ASS LCB init_list RCB;
 
 !stmts = stmts stmt | %;
-
 !stmt  = selection
         | iteration
         | BREAK SEM
@@ -35,7 +34,7 @@
 
 !factor = ID|NUM|LB expr RB;//May be string here
 !postfix = factor | factor LSB expr RSB | factor INC | factor DEC;
-!unary = postfix | NOT postfix | MIN postfix;
+!unary = postfix | NOT unary | MIN unary|INC unary|DEC unary;
 !term_ = term_ MULT unary|term_ DIV unary | unary;
 !add  = add PLUS term_ | add MIN term_ | term_;
 !rel = rel GT add|rel LS add|rel GT add|rel LE add|add;
