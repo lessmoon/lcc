@@ -42,10 +42,10 @@ namespace cccodegen{
                 <<"sym = getc();\n";
             cout<<"while(true){\n"
                 <<"switch(cctab[top][sym][0]){\n"
-                <<"case SHIFT:{\n";
+                <<"case _LSCC_SHIFT:{\n";
                     this -> gen_shift();
             cout<<"}\n"
-                <<"case REDUCE:{\n";
+                <<"case _LSCC_REDUCE:{\n";
                     this -> gen_reduce();
             cout<<"}\n"
                 <<"default:{\n"
@@ -109,8 +109,10 @@ namespace cccodegen{
         for(int i = 0; i < ps -> size();i++){
             const prod& p = para -> get_prod(i);
             cout<<"case "<<i+1<<":{//";gen_prod(p);cout<<"\n";
-            for(int j = 0;j < p.r -> size();j++)
-                print("products.pop();status.pop();\n");
+            for(int j = 0;j < p.r -> size();j++){
+                if(p.r -> at(j) != 0)//it is not empty symbols
+                    print("products.pop();status.pop();\n");
+            }
             cout<<"l = " << p.l << " ;\n"
                 <<"break;\n";
             print("}\n");
@@ -119,8 +121,8 @@ namespace cccodegen{
             <<"top = status.top();\n"
             <<"status.push(cctab[top][l][1]);\n"
             <<"products.push(l);\n"
-            <<"top = status.top();\n";
-        
+            <<"top = status.top();\n"
+            <<"break;\n"; 
 #undef  cout
 #undef print
     }

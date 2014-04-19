@@ -165,10 +165,34 @@ namespace cctabgen{
                 //for each prod l => ?
                 for(int j = 0; j < rl -> size();j++){
                     tmpr = rl -> at(j);
+
+                    /*
+                     * if the production is like 
+                     * a => %|T;
+                     * b => %|F;
+                     * c => a b;
+                     * when calculate the closure 
+                     * it will sometimes like
+                     * ********************
+                     * * c => .a b [1]    *
+                     * * a => .%   [1]    *
+                     * ********************
+                     * Obviously,a => .% should be a => %.
+                     * So we should skip the %.
+                     * this seems to be weird,but it is important
+                     */
+                    int now = 0;
+                     while(now < tmpr -> size()){
+                        if(tmpr -> at(now)==0)
+                            now++;
+                        else
+                            break;
+                    }
+
                     for(sym_set::iterator iter = fset.begin();
                         iter != fset.end();
                         iter++){
-                        tmp.set(0,l,tmpr,*iter);
+                        tmp.set(now,l,tmpr,*iter);
                         if(!I.find(tmp))
                             I.add(tmp);
                     }
