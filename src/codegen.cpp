@@ -27,8 +27,9 @@ namespace cccodegen{
         this -> gen_macro("REDUCE",cctabgen::REDUCE);
         this -> gen_sym_def();
         cout<<"class parser{\n";
-            this -> gen_table();
-            cout<<"int getc(){\n";
+            cout<<"static const int cctable["
+                <<tab -> size()<<"]["<<svt -> size()<<"]"<<"[2];\n" 
+                <<"int getc(){\n";
             this -> gen_sym_map();
             cout<<"}//getc()\n";
             cout<<"int do_parse(){\n"
@@ -54,6 +55,7 @@ namespace cccodegen{
                 <<"}\n"
                 <<"}//do_parse\n";
             cout<<"};//class parser\n";
+            this -> gen_table();
 #undef cout
     }
     
@@ -62,7 +64,9 @@ namespace cccodegen{
 #define cout    std::cout
         cout<<"products.push(sym);\n"
             <<"status.push(cctab[top][sym][1]);\n"
-            <<"sym = getc();\n";
+            <<"sym = getc();\n"
+            <<"top = status.top();\n"
+            <<"break;\n";
 #undef cout
     }
 
@@ -100,20 +104,23 @@ namespace cccodegen{
         cout<<"int l;\n"
             <<"switch(cctab[top][sym][1]){\n" 
             <<"case 0:{//accept\n"
+            <<"break;\n"
             <<"}\n";
         for(int i = 0; i < ps -> size();i++){
             const prod& p = para -> get_prod(i);
             cout<<"case "<<i+1<<":{//";gen_prod(p);cout<<"\n";
             for(int j = 0;j < p.r -> size();j++)
                 print("products.pop();status.pop();\n");
-            cout<<"l = " << p.l << " ;\n";
+            cout<<"l = " << p.l << " ;\n"
+                <<"break;\n";
             print("}\n");
         }
-        print("top = status.top();\n");
-        print("status.push(cctab[top][l][1]);\n");
-        print("products.push(l);\n");
-        print("top = status.top();\n");
-        cout<<"}\n";
+        cout<<"}\n"
+            <<"top = status.top();\n"
+            <<"status.push(cctab[top][l][1]);\n"
+            <<"products.push(l);\n"
+            <<"top = status.top();\n";
+        
 #undef  cout
 #undef print
     }
@@ -121,10 +128,10 @@ namespace cccodegen{
     void codegen::gen_table()
     {
         std::cout   <<"#if 1//action table\n"
-                    <<"static const int cctab["<< tab -> size() <<"]["<< svt -> size() <<"][2]={\n";
+                    <<"const int parser::cctab["<< tab -> size() <<"]["<< svt -> size() <<"][2]={\n";
         for(int i = 0 ; i < tab -> size();i++){
             std::cout<<"{";
-            for(int j = 0;j < tab -> at(i).size();j++){
+            for(int j = 0;j < svt -> size();j++){
                 std::cout<<"{"<<(*tab)[i][j].t<<","<<(*tab)[i][j].where<<"}";
                 if(j != tab -> at(i).size() - 1)
                     std::cout<<",";

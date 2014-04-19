@@ -1,7 +1,6 @@
 OBJS = main.o parser.o cctype.o tabgen.o lexer.o\
         reserved.o kb_io.o file_io.o \
-        token_storage.o 
-OBJS_ = $(OBJS) codegen.o
+        token_storage.o codegen.o
 		
 
 CPPC = g++ -c
@@ -14,9 +13,6 @@ TAR = mycc
 
 all:$(OBJS)
 	$(LD) $(OBJS) -o $(TAR)
-
-test:$(OBJS_)
-	$(LD) $(OBJS_) -o $(TAR)
 
 main.o:main.cpp parser.h kb_io.h lexer.h tabgen.h
 	$(CPPC) $(CPPFLAGS) main.cpp
