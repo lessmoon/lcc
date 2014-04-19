@@ -210,7 +210,7 @@ namespace cctabgen{
                             /*it should be reduced now!*/
                             if(srtable[i][it -> a].t != ERROR){
                                 if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r) + 1 ))
-                                    std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][it -> a].t == SHIFT?'s'
+                                    std::cerr<<"At I"<<i<<"["<<i<<","<<it -> a<<"]"<<" has conflict with "<<(srtable[i][it -> a].t == SHIFT?'s'
                                                                                 :(srtable[i][it -> a].t == REDUCE)?'r'
                                                                                 :'n')<<srtable[i][it ->a].where
                                                                                 <<" and r"<<ps -> get_id(it -> l,it -> r)+1<<"\n";
@@ -231,8 +231,8 @@ namespace cctabgen{
                         f = s.add(tmp1);
                     }
                     if(srtable[i][k].t != ERROR){
-                      if(!(srtable[i][it -> a].t == REDUCE && srtable[i][it ->a].where == ps -> get_id(it -> l,it -> r) + 1 ))
-                         std::cerr<<"At I"<<i<<" has conflict with "<<(srtable[i][k].t == SHIFT?'s'
+                      if(!(srtable[i][k].t == REDUCE && srtable[i][k].where == ps -> get_id(it -> l,it -> r) + 1 ))
+                         std::cerr<<"At I"<<i<<"["<<i<<","<<k<<"] has conflict with "<<(srtable[i][k].t == SHIFT?'s'
                                                                      :(srtable[i][k].t == REDUCE)?'r'
                                                                      :'n')<<srtable[i][k].where
                                                                     <<" and s"<<f<<"\n";

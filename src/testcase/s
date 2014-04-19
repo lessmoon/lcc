@@ -12,7 +12,11 @@
 !program = block ;
 !block   = LCB decls stmts RCB;
 !decls   = decls decl | %;
-!decl    = BASIC ID SEM| BASIC ID LSB NUM RSB;
+!decl    = BASIC ID SEM
+            | BASIC ID ASS expr SEM 
+            | BASIC ID LSB NUM RSB SEM 
+            | BASIC ID LSB NUM RSB ASS LCB init_list RCB SEM;
+!init_list = init_list COMMA expr | expr;
 
 !stmts = stmts stmt | %;
 
@@ -29,7 +33,7 @@
 !selection =  IF LB expr RB stmt
             | IF LB expr RB stmt ELSE stmt;
 
-!factor = ID|NUM|RB expr LB;//May be string here
+!factor = ID|NUM|LB expr RB;//May be string here
 !postfix = factor | factor LSB expr RSB | factor INC | factor DEC;
 !unary = postfix | NOT postfix | MIN postfix;
 !term_ = term_ MULT unary|term_ DIV unary | unary;
@@ -42,6 +46,3 @@
 
 *program;
 7
--1
--1
--1
