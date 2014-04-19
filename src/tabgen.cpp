@@ -191,18 +191,23 @@ namespace cctabgen{
             tmp1.reserve(10);
             //for each context grammer symbols
             //Because 0 is the empty symbol,ignore it
-            for(sym_t k = 1;k < svt -> size();k++){
+            for(sym_t k = 0;k < svt -> size();k++){
                 il = &(s.at(i));
                 for(int j = 0;j < il -> size();j++){
                     it = &(il -> at(j));
-                    if(it -> now < it -> size()){
-                        if(it -> at(it -> now) == k){
-                            if(it -> at(it -> now) == k){
-                                item tmp(it -> now + 1,it -> l,it -> r,it -> a);
-                                if(!tmp1.find(tmp)){
-                                    tmp1.add(tmp);
-                                    closure(tmp1);
-                                }
+                    int n = it -> now;
+                    while(n < it -> size()){
+                        if(it -> at(n) == 0)
+                            n++;
+                        else
+                            break;
+                    }
+                    if(n < it -> size()){
+                        if(it -> at(n) == k){
+                            item tmp(n + 1,it -> l,it -> r,it -> a);
+                            if(!tmp1.find(tmp)){
+                                  tmp1.add(tmp);
+                                  closure(tmp1);
                             }
                         }
                     }else{
