@@ -10,7 +10,7 @@
                             MINUS = 268,NE    = 269,NUM   = 270,
                             OR    = 271,REAL  = 272,TEMP  = 273,
                             TRUE  = 274,WHILE = 275,INC   = 276,
-                            DEC   = 277,FOR   = 276,STR   = 277;
+                            DEC   = 277,FOR   = 278,STR   = 279;
         };
     };
 #endif // _TAG_H
