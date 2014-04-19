@@ -1,23 +1,6 @@
 #include"tabgen.h"
 #include<iostream>
 
-namespace{
-    void p_right(cctype::right* r)
-    {
-        for(int i = 0;i < r -> size();i++)
-            std::cout<< r -> at(i)<<" ";
-    }
-
-    void pr_il(cctype::item_list*il)
-    {
-        for(int i = 0;i < il -> size();i++){
-            std::cout<<il -> at(i).l<<"=>";
-            p_right(il -> at(i).r);
-            std::cout<<" ["<<il -> at(i).now<<"]"<<"\n";
-        }
-    }
-};
-
 namespace cctabgen{
     tabgen::tabgen()
     :para(NULL){}
@@ -77,8 +60,6 @@ namespace cctabgen{
             }
         }
         closure(I0);
-        /*TEST*/
-        pr_il(&I0);
         this -> closure_set(I0);
         return &srtable;
 #undef  END_SYM

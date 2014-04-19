@@ -3,10 +3,12 @@
 #include "kb_io.h"
 #include "lexer.h"
 #include "tabgen.h"
+#include "codegen.h"
 
 using namespace ccparser;
 using namespace system;
 using namespace cctabgen;
+//using namespace cccodegen;
 
 using namespace std;
 
@@ -39,30 +41,26 @@ int main()
     tabgen tg;
     tabgen::table*tab;
     iol* io = new kb_io;
+    cccodegen::codegen*cg = new cccodegen::codegen;
     lexer::lexer* z = new lexer::lexer(io);
     parser p(z);
+    ccparser::result::prods*zp;
+    ccparser::result*res;
     try{
-        ccparser::result*res = p.stmts();
-        ccparser::result::prods*zp = &(res->productions);
-        ccparser::result::prods::map::iterator iter;
-        for(iter = zp -> seq.begin();iter != zp -> seq.end(); iter++){
-            cout<<iter -> first<<"=>";
-            print_rl(iter -> second);
-        }
+        res = p.stmts();
+        zp = &(res->productions);
         tg.set_para(res);
     }catch(std::string&e){
         std::cerr<<"At line "<<z -> lineno<<":"<<e<<std::endl;
     }
     try{
         tab = tg.calculate();
-        for(int i = 0 ; i < tab -> size();i++){
-            for(int j = 0 ; j < tab -> at(i).size();j++)
-                std::cout<< (*tab)[i][j]<<"\t";
-            std::cout<<std::endl;
-        }
     }catch(std::string&e){
         std::cerr<<e<<std::endl;
     }
+    cg -> set_para(res,tab);
+    cg -> gen_code();
+    delete cg;
     delete z;
     delete io;
     return 0;
