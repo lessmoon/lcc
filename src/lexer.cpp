@@ -278,7 +278,7 @@ namespace lexer{
         peek = sys_io -> readch();
     }
 
-    bool lexer::readch(const char c)
+    bool lexer::readch(const elem_t c)
     {
         this -> readch();
         if(CH_IS_NOT(peek,c))

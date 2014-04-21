@@ -16,7 +16,9 @@ namespace system{
     elem_t kb_io::readch()
     {
         c = std::cin.get();
-        return c;   
+        if(this -> is_end())
+            return -1;
+        return c; 
     }
     
     string kb_io::readline()
@@ -32,7 +34,7 @@ namespace system{
     
     bool kb_io::is_end()const
     {
-        return (c=='\0');
+        return (!std::cin.good());
     }
     
     void kb_io::unread(const elem_t c)

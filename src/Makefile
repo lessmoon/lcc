@@ -1,8 +1,9 @@
-OBJS = lexer.o reserved.o lexertest.o kb_io.o file_io.o token_storage.o
+OBJS = lexer.o reserved.o parser.test.o kb_io.o file_io.o token_storage.o\
+        parser.o  
 
 CPPC = g++ -c
 
-LD   = g++
+LD   = g++ -O3
 
 CPPFLAGS = -O3
 
@@ -10,6 +11,12 @@ TAR = test
 
 all:$(OBJS)
 	$(LD) $(OBJS) -o $(TAR)
+
+parser.test.o:parser.test.cpp parser.h
+	$(CPPC) $(CPPFLAGS) parser.test.cpp
+
+parser.o:parser.cpp parser.h
+	$(CPPC) $(CPPFLAGS) parser.cpp
 
 lexer.o:lexer.cpp reserved.o token_storage.o lexer.h real.h num.h\
         tag.h type.h\

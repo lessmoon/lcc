@@ -13,10 +13,10 @@
 !block   = LCB decls stmts RCB;
 !decls   = decls decl | %;
 !decl    = BASIC idlist SEM;
-!init_list = init_list COMMA expr | expr;
-!idlist  = idlist COMMA declarator|declarator;
+!idlist  = idlist COMMA declarator| declarator;
 !declarator = ID | ID ASS expr | array_decl;
 !array_decl = ID LSB NUM RSB | ID LSB NUM RSB ASS LCB init_list RCB;
+!init_list = init_list COMMA expr | expr;
 
 !stmts = stmts stmt | %;
 !stmt  = selection

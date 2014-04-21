@@ -27,13 +27,9 @@ namespace inter{
             virtual ~expr()
             {}
         public:
-            self_ptr gen()
+            void gen()const
             {
-                return this;
-            }
-            self_ptr reduce()
-            {
-                return this;
+                ;
             }
     };//class expr
 };//namespace inter
