@@ -27,15 +27,15 @@ namespace lexer
             typedef token*                     token_ptr;
             typedef num::num_t                 num_t;
             typedef real::real_t               real_t;
-            typedef w_table::value_type        pair;           
-            typedef w_table::iterator          tab_iter; 
+            typedef w_table::value_type        pair;
+            typedef w_table::iterator          tab_iter;
             typedef system::iol                iol;
             typedef iol*                       iol_ptr;
             typedef token_storage              tok_st;
             typedef tok_st*                    tok_st_ptr;
         public:
-            elem_t          peek;
-            static  int     lineno;
+            elem_t  peek;
+            static int     lineno;
         private:
             iol_ptr sys_io;
         public:

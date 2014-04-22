@@ -7,7 +7,7 @@
  * This is an interface of the io level.
  */
 namespace system{
-    typedef int elem_t;
+    typedef char elem_t;
     typedef std::string string;
     class iol{
     public:

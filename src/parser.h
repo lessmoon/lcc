@@ -3,6 +3,15 @@
 #include"lexer.h"
 #include"tag.h"
 #include"token.h"
+#include"env.h"
+#include"stmts.h"
+#include"stmt.h"
+#include"inter.arith.h"
+#include"inter.nodes.h"
+#include"expr.h"
+#include"decls.h"
+#include"arrexp.h"
+
 
 #include<stack>
 
@@ -71,11 +80,20 @@
 #define _LSCC_LE 60
 #define _LSCC_NOT 61
 #endif                //symbols define
+
+#define assxtoy(x,y) {\
+                            union{typeof(x) i;typeof(y) i2;}tmp;\
+                            tmp.i = x;\
+                            y = tmp.i2;\
+                            }
+
 class parser {
     private:
     static const int cctab[545][62][2];
     lexer::lexer*   lex;
     lexer::token*   look;
+    symbols::env*   env;
+
     private:
     int getc()
     {
@@ -83,7 +101,7 @@ class parser {
         look = lex -> scan();
         lexer::tag_t t = look->tag;
         switch (t) {
-        case '#':case -1:return 1;//end symbol
+        case '#':return 1;//end symbol
         case '{':return _LSCC_LCB;
         case '}':return _LSCC_RCB;
         case '[':return _LSCC_LSB;
@@ -127,11 +145,13 @@ class parser {
 
     public:
     parser(lexer::lexer*lex)
-    :lex(lex),look(NULL)
+    :lex(lex),look(NULL),env(new symbols::env(NULL))
     {}
 
     ~parser()
-    {}
+    {
+        delete env;
+    }
 
     public:
 
@@ -140,14 +160,18 @@ class parser {
         std::stack < int >status;
         std::stack < int >products;
         int sym, top;
+        int left;
         status.push(0);    //push the start status
         products.push(1);    //push the end symbols
         top = status.top();
         sym = getc();
+        union{void* vtok;int vint;}tmp;
+
         while (true) {
             switch (cctab[top][sym][0]) {
             case _LSCC_SHIFT:{
-                    products.push(sym);
+                    tmp.vtok = look;
+                    products.push(tmp.vint);
                     status.push(cctab[top][sym][1]);
                     sym = getc();
                     top = status.top();
@@ -157,7 +181,7 @@ class parser {
                     int l;
                     switch (cctab[top][sym][1]) {
                     case 0:{    //accept
-                            return 0;
+                            break;
                         }
                     case 1:{    //program=>block
                             products.pop();status.pop();
@@ -165,129 +189,214 @@ class parser {
                             break;
                         }
                     case 2:{    //block=>LCB decls stmts RCB
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
+                            /**/
+                            inter::block* blk = new inter::block;
+                            products.pop();status.pop();//RCB
+                            assxtoy(products.top(),blk -> ds);
+                            products.pop();status.pop();//decls
+                            assxtoy(products.top(),blk -> ss);
+                            products.pop();status.pop();//stmts
+                            products.pop();status.pop();//LCB
+                            assxtoy(blk,left);
                             l = 3;
                             break;
                         }
                     case 3:{    //decls=>decls decl
+                            inter::decls* ds = new inter::decls;
+                            assxtoy(products.top(),ds -> d2);
                             products.pop();status.pop();
+                            assxtoy(products.top(),ds -> d1);
                             products.pop();status.pop();
+                            assxtoy(ds,left);
                             l = 4;
                             break;
                         }
                     case 4:{    //decls=>%
+                            inter::decls* ds = new inter::decls;
+                            ds -> d1 = NULL;
+                            ds -> d2 = NULL;
+                            assxtoy(ds,left);
                             l = 4;
                             break;
                         }
                     case 5:{    //decl=>BASIC idlist SEM
+                             /*
+                              *TODO:for each id in id list
+                              *     input the id into the env.
+                              */
+                            inter::decl* dc = new inter::decl;
+
                             products.pop();status.pop();
+                            assxtoy(products.top(),dc -> idl);
                             products.pop();status.pop();
+                            assxtoy(products.top(),dc -> t);
                             products.pop();status.pop();
+                            for(int i = 0;i < dc -> idl -> list.size();i++){
+                                inter::declarator* dclt = dc -> idl -> list.at(i);
+                                inter::id* t = dclt -> produce(dc -> t);
+                                env -> put(dclt -> name,t);
+                            }
+                            dc -> gen();
+                            //dc -> idl -> gen(dc -> t);
+                            assxtoy(dc,left);
                             l = 5;
                             break;
                         }
                     case 6:{    //init_list=>init_list COMMA expr
+                            std::vector<inter::expr*>* initlist ;
+                            inter::expr* e;
+                            assxtoy(products.top(),e);
                             products.pop();status.pop();
                             products.pop();status.pop();
+                            assxtoy(products.top(),initlist);
+                            initlist -> push_back(e);
                             products.pop();status.pop();
+                            assxtoy(initlist,left);
                             l = 13;
                             break;
                         }
                     case 7:{    //init_list=>expr
+                            std::vector<inter::expr*>* initlist = new std::vector<inter::expr*>;
+                            inter::expr* e;
+                            assxtoy(products.top(),e);
+                            initlist -> push_back(e);
                             products.pop();status.pop();
+                            assxtoy(initlist,left);
                             l = 13;
                             break;
                         }
                     case 8:{    //idlist=>idlist COMMA declarator
+                            inter::single_id* nid;
+                            inter::idlist* idl;
+                            assxtoy(products.top(),nid);
                             products.pop();status.pop();
                             products.pop();status.pop();
+                            assxtoy(products.top(),idl);
+                            idl-> list.push_back(nid);
                             products.pop();status.pop();
+                            assxtoy(idl,left);
                             l = 7;
                             break;
                         }
                     case 9:{    //idlist=>declarator
+                            inter::single_id* nid ;
+                            inter::idlist* idl = new inter::idlist;
+                            assxtoy(products.top(),nid);
+                            idl-> list.push_back(nid);
                             products.pop();status.pop();
+                            assxtoy(idl,left);
                             l = 7;
                             break;
                         }
                     case 10:{    //declarator=>ID
+                            inter::single_id* nid = new inter::single_id;
+                            nid -> init = NULL;
+                            assxtoy(products.top(),nid -> name);
                             products.pop();status.pop();
+                            assxtoy(nid,left);
                             l = 8;
                             break;
                         }
                     case 11:{    //declarator=>ID ASS expr
+                            inter::single_id* nid = new inter::single_id;
+                            assxtoy(products.top(),nid -> init);
                             products.pop();status.pop();
                             products.pop();status.pop();
+                            assxtoy(products.top(),nid -> name);
                             products.pop();status.pop();
+                            assxtoy(nid,left);
+                            //nid -> gen();
                             l = 8;
                             break;
                         }
                     case 12:{    //declarator=>array_decl
+                            left = products.top();
                             products.pop();status.pop();
                             l = 8;
                             break;
                         }
                     case 13:{    //array_decl=>ID LSB NUM RSB
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
+                            inter::arr_decl* arr = new inter::arr_decl;
+                            products.pop();status.pop();//RSB
+                            assxtoy(products.top(),arr -> size);
+                            products.pop();status.pop();//NUM
+                            products.pop();status.pop();//LSB
+                            assxtoy(products.top(),arr -> name);
+                            products.pop();status.pop();//ID
+                            assxtoy(arr,left);
                             l = 9;
                             break;
                         }
                     case 14:{    //array_decl=>ID LSB NUM RSB ASS LCB init_list RCB
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
+                            inter::arr_decl*arr = new inter::arr_decl;
+                            products.pop();status.pop();//RCB
+                            assxtoy(products.top(),arr -> initlist);
+                            products.pop();status.pop();//init_list
+                            products.pop();status.pop();//LCB
+                            products.pop();status.pop();//ASS
+                            products.pop();status.pop();//RSB
+                            assxtoy(products.top(),arr -> size);
+                            products.pop();status.pop();//NUM
+                            products.pop();status.pop();//LSB
+                            assxtoy(products.top(),arr -> name);
+                            products.pop();status.pop();//ID
+                            assxtoy(arr,left);
                             l = 9;
                             break;
                         }
                     case 15:{    //stmts=>stmts stmt
-                            products.pop();status.pop();
-                            products.pop();status.pop();
+                            inter::stmts*ss = new inter::stmts(NULL,NULL);
+                            assxtoy(products.top(),ss -> s2);
+                            products.pop();status.pop();//stmt
+                            assxtoy(products.top(),ss -> s1);
+                            products.pop();status.pop();//stmts
+                            assxtoy(ss,left);
                             l = 14;
                             break;
                         }
                     case 16:{    //stmts=>%
+                            inter::stmts* s = new inter::stmts(NULL,NULL);
+                            assxtoy(s, left);
                             l = 14;
                             break;
                         }
                     case 17:{    //stmt=>selection
+                            left = products.top();
                             products.pop();status.pop();
                             l = 15;
                             break;
                         }
                     case 18:{    //stmt=>iteration
+                            left = products.top();
                             products.pop();status.pop();
                             l = 15;
                             break;
                         }
                     case 19:{    //stmt=>BREAK SEM
+                            /*TODO: ignore!*/
                             products.pop();status.pop();
                             products.pop();status.pop();
                             l = 15;
                             break;
                         }
                     case 20:{    //stmt=>block
+                            left = products.top();
                             products.pop();status.pop();
                             l = 15;
                             break;
                         }
                     case 21:{    //stmt=>expr SEM
+                            inter::sexpr*s = new inter::sexpr;
                             products.pop();status.pop();
+                            assxtoy(products.top(),s->e);
                             products.pop();status.pop();
+                            assxtoy(s,left);
+                            s -> gen();
                             l = 15;
                             break;
                         }
                     case 22:{    //iteration=>WHILE LB expr RB stmt
+                            /*TODO:while*/
                             products.pop();status.pop();
                             products.pop();status.pop();
                             products.pop();status.pop();
@@ -297,6 +406,7 @@ class parser {
                             break;
                         }
                     case 23:{    //iteration=>DO stmt WHILE LB expr RB SEM
+                            /*TODO:do while*/
                             products.pop();status.pop();
                             products.pop();status.pop();
                             products.pop();status.pop();
@@ -308,6 +418,7 @@ class parser {
                             break;
                         }
                     case 24:{    //iteration=>FOR LB expr SEM expr SEM expr RB stmt
+                            /*TODO: for*/
                             products.pop();status.pop();
                             products.pop();status.pop();
                             products.pop();status.pop();
@@ -321,6 +432,7 @@ class parser {
                             break;
                         }
                     case 25:{    //selection=>IF LB expr RB stmt
+                            /*TODO: if */
                             products.pop();status.pop();
                             products.pop();status.pop();
                             products.pop();status.pop();
@@ -330,6 +442,7 @@ class parser {
                             break;
                         }
                     case 26:{    //selection=>IF LB expr RB stmt ELSE stmt
+                            /*TODO: ifelse*/
                             products.pop();status.pop();
                             products.pop();status.pop();
                             products.pop();status.pop();
@@ -341,186 +454,190 @@ class parser {
                             break;
                         }
                     case 27:{    //factor=>ID
+                            lexer::word*w;
+                            inter::id* t;
+                            assxtoy(products.top(),w);
+                            t = env -> get(w);
                             products.pop();status.pop();
+                            assxtoy(t,left);
                             l = 25;
                             break;
                         }
                     case 28:{    //factor=>NUM
+                            inter::constant* _const = new inter::constant;
+                            assxtoy(products.top(), _const -> op);
                             products.pop();status.pop();
+                            assxtoy(_const, left);
                             l = 25;
                             break;
                         }
                     case 29:{    //factor=>LB expr RB
                             products.pop();status.pop();
+                            left = products.top();
                             products.pop();status.pop();
                             products.pop();status.pop();
                             l = 25;
                             break;
                         }
                     case 30:{    //postfix=>factor
+                            left = products.top();
                             products.pop();status.pop();
                             l = 24;
                             break;
                         }
                     case 31:{    //postfix=>factor LSB expr RSB
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
+                            /*TODO:*/
+                            inter::id* nid;
+                            inter::expr*idx;
+                            products.pop();status.pop();//RSB
+                            assxtoy(products.top(),idx);
+                            products.pop();status.pop();//expr
+                            products.pop();status.pop();//LSB
+                            assxtoy(products.top(),nid);
+                            products.pop();status.pop();//factor
+                            assxtoy(new inter::arrexp(nid,idx),left);
                             l = 24;
                             break;
                         }
-                    case 32:{    //postfix=>factor INC
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 24;
-                            break;
-                        }
+                    case 32:   //postfix=>factor INC
                     case 33:{    //postfix=>factor DEC
+                            inter::postfix* p = new inter::postfix;
+                            assxtoy(products.top(), p -> op);
                             products.pop();status.pop();
+                            assxtoy(products.top(), p -> e);
                             products.pop();status.pop();
+                            assxtoy(p, left);
                             l = 24;
                             break;
                         }
                     case 34:{    //unary=>postfix
+                            left = products.top();
                             products.pop();status.pop();
                             l = 23;
                             break;
                         }
-                    case 35:{    //unary=>NOT unary
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 23;
-                            break;
-                        }
-                    case 36:{    //unary=>MIN unary
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 23;
-                            break;
-                        }
-                    case 37:{    //unary=>INC unary
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 23;
-                            break;
-                        }
+                    case 35:    //unary=>NOT unary
+                    case 36:    //unary=>MIN unary
+                    case 37:    //unary=>INC unary
                     case 38:{    //unary=>DEC unary
+                            inter::unary* u = new inter::unary;
+                            /*TODO:check type!*/
+                            assxtoy(products.top(), u -> e);
                             products.pop();status.pop();
+                            assxtoy(products.top(), u -> op);
                             products.pop();status.pop();
+                            assxtoy(u, left);
                             l = 23;
                             break;
                         }
-                    case 39:{    //term_=>term_ MULT unary
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 22;
-                            break;
-                        }
+                    case 39:    //term_=>term_ MULT unary
                     case 40:{    //term_=>term_ DIV unary
+                            inter::arith*_arith = new inter::arith;
+                            assxtoy(products.top(), _arith -> e2);
                             products.pop();status.pop();
+                            assxtoy(products.top(), _arith -> op);
                             products.pop();status.pop();
+                            assxtoy(products.top(), _arith -> e1);
                             products.pop();status.pop();
+                            assxtoy(_arith,left);
                             l = 22;
                             break;
                         }
                     case 41:{    //term_=>unary
+                            left = products.top();
                             products.pop();status.pop();
                             l = 22;
                             break;
                         }
-                    case 42:{    //add=>add PLUS term_
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 21;
-                            break;
-                        }
+                    case 42:   //add=>add PLUS term_
                     case 43:{    //add=>add MIN term_
+                            inter::arith*_arith = new inter::arith;
+                            assxtoy(products.top(), _arith -> e2);
                             products.pop();status.pop();
+                            assxtoy(products.top(), _arith -> op);
                             products.pop();status.pop();
+                            assxtoy(products.top(), _arith -> e1);
                             products.pop();status.pop();
+                            assxtoy(_arith,left);
                             l = 21;
                             break;
                         }
                     case 44:{    //add=>term_
+                            left = products.top();
                             products.pop();status.pop();
                             l = 21;
                             break;
                         }
-                    case 45:{    //rel=>rel GT add
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 20;
-                            break;
-                        }
-                    case 46:{    //rel=>rel LS add
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 20;
-                            break;
-                        }
-                    case 47:{    //rel=>rel GT add
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 20;
-                            break;
-                        }
+                    case 45:    //rel=>rel GT add
+                    case 46:    //rel=>rel LS add
+                    case 47:    //rel=>rel GT add
                     case 48:{    //rel=>rel LE add
+                            inter::arith*_arith = new inter::arith;
+                            assxtoy(products.top(),_arith -> e2);
                             products.pop();status.pop();
+                            assxtoy(products.top(),_arith -> op);
                             products.pop();status.pop();
+                            assxtoy(products.top(),_arith -> e1);
                             products.pop();status.pop();
+                            assxtoy(_arith,left);
                             l = 20;
                             break;
                         }
                     case 49:{    //rel=>add
+                            left = products.top();
                             products.pop();status.pop();
                             l = 20;
                             break;
                         }
-                    case 50:{    //equality=>equality EQ rel
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            products.pop();status.pop();
-                            l = 19;
-                            break;
-                        }
+                    case 50:     //equality=>equality EQ rel
                     case 51:{    //equality=>equality NE rel
+                            inter::arith*_arith = new inter::arith;
+                            assxtoy(products.top(),_arith -> e2);
                             products.pop();status.pop();
+                            assxtoy(products.top(),_arith -> op);
                             products.pop();status.pop();
+                            assxtoy(products.top(),_arith -> e1);
                             products.pop();status.pop();
+                            assxtoy(_arith,left);
                             l = 19;
                             break;
                         }
                     case 52:{    //equality=>rel
+                            left = products.top();
                             products.pop();status.pop();
                             l = 19;
                             break;
                         }
                     case 53:{    //join=>join AND equality
+                            inter::and_* _and = new inter::and_;
+                            assxtoy(products.top(),_and -> e2);
                             products.pop();status.pop();
                             products.pop();status.pop();
+                            assxtoy(products.top(),_and -> e1);
                             products.pop();status.pop();
+                            assxtoy(_and,left);
                             l = 18;
                             break;
                         }
                     case 54:{    //join=>equality
+                            left = products.top();
                             products.pop();status.pop();
                             l = 18;
                             break;
                         }
                     case 55:{    //bool_=>bool_ OR join
+                            inter::or_* _or = new inter::or_;
+                            assxtoy(products.top(),_or -> e2);
                             products.pop();status.pop();
                             products.pop();status.pop();
+                            assxtoy(products.top(),_or -> e1);
                             products.pop();status.pop();
+                            assxtoy(_or,left);
                             l = 17;
                             break;
                         }
                     case 56:{    //bool_=>join
+                            left = products.top();
                             products.pop();status.pop();
                             l = 17;
                             break;
@@ -533,14 +650,18 @@ class parser {
                             break;
                         }
                     case 58:{    //expr=>bool_
+                            //inter::
+                            left = products.top();
                             products.pop();status.pop();
+                            tmp.vint = left;
+                            //((inter::expr*) tmp.vtok) -> gen();
                             l = 16;
                             break;
                         }
                     }
                     top = status.top();
                     status.push(cctab[top][l][1]);
-                    products.push(l);
+                    products.push(left);
                     top = status.top();
                     break;
                 }

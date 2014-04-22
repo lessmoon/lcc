@@ -13,10 +13,9 @@ namespace inter{
             typedef type* type_ptr;
             typedef lexer::word word;
             typedef word*       word_ptr;
-            
+
         public:
              int offset;
-             static int esp_offset;
         public:
              id(word_ptr i,type_ptr p,const int b)
              :expr(i,p),offset(b)
@@ -24,9 +23,8 @@ namespace inter{
 
             void gen()const
             {
-                std::cout<<"movl "<<((esp_offset - offset)*4)<<"(%esp),%eax\n";
-                std::cout<<"leal %esp,%ebx\n";
-                std::cout<<"addl "<<((esp_offset - offset)*4)<<",%ebx\n";
+                std::cout<<"leal "<<(offset - node::esp_offset)<<"(%esp),%ebx\n";
+                std::cout<<"movl (%ebx),%eax\n";
             }
     };//class id
 };//namespace inter

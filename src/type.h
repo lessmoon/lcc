@@ -15,7 +15,7 @@ namespace symbols{
         public:
             const int width;
         public:
-            type(const string&s,const lexer::tag_t tag,const int width)
+            type(const string&s,lexer::tag_t tag,int width)
             :lexer::word(s,tag),width(width)
             {}
             virtual ~type(){}

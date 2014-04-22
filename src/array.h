@@ -3,14 +3,14 @@
 
 #include"type.h"
 
-namespace symbels{
+namespace symbols{
     class array:public type{
         public:
             type*of;
             int  size;
             array(const int sz,type*p)
             :type("[]",p -> tag,sz * p->width),of(p),size(sz){
-                
+
             }
     };//class array
 };//namespace lexer

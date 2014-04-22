@@ -9,14 +9,14 @@ namespace inter{
 
     void node::emitlabel(int i)const
     {
-        std::cout<<"_LCC_"<<i<<":"<<std::endl;
+        std::cout<<"._LCC_"<<i<<":"<<std::endl;
     }
 
     void node::emit(const string&s)const
     {
-        std::cout<<s<<"\n";
+        std::cout<<s;
     }
-    
+
     void node::emitjmp(const int l,const int t)const
     {
         switch(t){
@@ -54,47 +54,47 @@ namespace inter{
             std::cout<<"jng _LCC_"<<l<<"\n";
             break;
         case JMPO:
-            std::cout<<"jmp $"<<l<<"\n";
+            std::cout<<"jmp $.+"<<l<<"\n";
             break;
         case JZO:
-            std::cout<<"jz $"<<l<<"\n";
+            std::cout<<"jz $.+"<<l<<"\n";
             break;
         case JNZO:
-            std::cout<<"jnz $"<<l<<"\n";
+            std::cout<<"jnz $.+"<<l<<"\n";
             break;
         case JEO:
-            std::cout<<"je $"<<l<<"\n";
+            std::cout<<"je $.+"<<l<<"\n";
             break;
         case JNEO:
-            std::cout<<"jne $"<<l<<"\n";
+            std::cout<<"jne $.+"<<l<<"\n";
             break;
         case JLO:
-            std::cout<<"jl $"<<l<<"\n";
+            std::cout<<"jl $.+"<<l<<"\n";
             break;
         case JNLO:
-            std::cout<<"jnl $"<<l<<"\n";
+            std::cout<<"jnl $.+"<<l<<"\n";
             break;
         case JLEO:
-            std::cout<<"jle $"<<l<<"\n";
+            std::cout<<"jle $.+"<<l<<"\n";
             break;
         case JGO:
-            std::cout<<"jg $"<<l<<"\n";
+            std::cout<<"jg $.+"<<l<<"\n";
             break;
         case JGEO:
-            std::cout<<"jge $"<<l<<"\n";
+            std::cout<<"jge $.+"<<l<<"\n";
             break;
         case JNGO:
-            std::cout<<"jng $"<<l<<"\n";
+            std::cout<<"jng $.+"<<l<<"\n";
             break;
         }
     }
-   
+
     void node::emitpush(const string&str)const
     {
         std::cout<<"pushl "<<str<<"\n";
         esp_offset += 4;
     }
-    
+
     void node::emitpop(const string&str)const
     {
         std::cout<<"popl "<<str<<"\n";
@@ -103,7 +103,7 @@ namespace inter{
 
     void node::emitstack(const int sz)const
     {
-        std::cout<<"addl "<<sz<<",%esp\n";
+        std::cout<<"addl $"<<sz<<",%esp\n";
         esp_offset += sz;
     }
 

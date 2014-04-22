@@ -7,14 +7,14 @@
 #include"stmt.h"
 
 namespace inter{
-    
+
     struct for_:public stmt{
         public:
             expr* e1;expr* c;expr* e2;
             stmt* s;
         public:
             for_(expr* e1,expr* c,expr* e2,stmt* s)
-            :e1(e1),e2(e2),c(c),s(s)
+            :e1(e1),c(c),e2(e2),s(s)
             {}
         public:
             void gen()const
@@ -60,7 +60,7 @@ namespace inter{
             }
 
     };//struct while_
-    
+
     struct dowhile:public stmt{
         stmt* s;
         expr* c;
@@ -117,7 +117,13 @@ namespace inter{
 
     };//struct ifelse
 
-
+    struct sexpr:public stmt{
+        expr*e;
+        void gen()const
+        {
+            e -> gen();
+        }
+    };
 };//namespace inter
 
 #endif //_INTER_NODES_H

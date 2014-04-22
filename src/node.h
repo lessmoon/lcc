@@ -20,12 +20,13 @@ namespace inter{
     private:
         int lexline;
         static int labels;
+    public:
         static int esp_offset;
     public:
         node()
         :lexline(lexer::lexer::lineno)
         {
-            
+
         }
     public:
         virtual void gen() const = 0;

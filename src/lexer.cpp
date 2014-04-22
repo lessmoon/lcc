@@ -23,12 +23,12 @@ namespace {
         return (c >= 'A' && c <= 'Z')
                 || (c >= 'a' && c <= 'z');
     }
-    
+
     inline bool is_hex(const char c)
     {
         return is_digit(c)|| (c >= 'a' && c <= 'f');
     }
-    
+
     inline bool is_oct(const char c)
     {
         return (c >= '0' && c <= '7');
@@ -36,9 +36,8 @@ namespace {
 };
 
 namespace lexer{
+    int lexer::lineno = 1;
 
-    int lexer::lineno = 0;
-    
     lexer::lexer(iol_ptr sys_io)
     :peek(' '),sys_io(sys_io)
     {
@@ -90,7 +89,7 @@ namespace lexer{
         buf.reserve(MAX_LEXME_STR);
 
         for(;;readch()){
-            if(CH_IS(peek,' ') || CH_IS(peek , '\t'))
+            if(CH_IS(peek,' ') || CH_IS(peek , '\t') || CH_IS(peek , '\r'))
                 continue;
             else if(CH_IS(peek , '\n'))
                 lineno++;
@@ -278,7 +277,7 @@ namespace lexer{
         peek = sys_io -> readch();
     }
 
-    bool lexer::readch(const elem_t c)
+    bool lexer::readch(const char c)
     {
         this -> readch();
         if(CH_IS_NOT(peek,c))

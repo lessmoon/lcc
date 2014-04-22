@@ -8,11 +8,12 @@
 #include"type.h"
 
 namespace inter{
-    struct op:public expr{
-        
+    struct OP:public expr{
+    OP()
+    :expr(NULL,symbols::int_){}
     };//struct op
 
-    struct arith:public op{
+    struct arith:public OP{
         expr* e1;
         expr* e2;
 
@@ -33,7 +34,7 @@ namespace inter{
                 break;
             }
             case '*':{
-                this -> emit("mull (%esp)");
+                this -> emit("mull (%esp)\n");
                 this -> emitstack(4);
                 break;
             }
@@ -50,82 +51,57 @@ namespace inter{
                 this -> emit("movl $eax,$ebx\n");
                 this -> emit("movl (%esp),$eax\n");
                 this -> emit("divl %ebx\n");
-                this -> emit("movl %edx,%eax");
+                this -> emit("movl %edx,%eax\n");
                 this -> emitstack(4);
                 break;
             }
             case lexer::tag::EQ:{
-                int i = this -> newlabel();
-                int j = this -> newlabel();
                 this -> emit("cmpl %eax,(%esp)\n");
-                this -> emitjmp(12,JNEO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMPO);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("sete %al\n");
                 this -> emitstack(4);
                 break;
             }
             case lexer::tag::NE:{
-                int i = this -> newlabel();
-                int j = this -> newlabel();
                 this -> emit("cmpl %eax,(%esp)\n");
-                this -> emitjmp(12,JEO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMPO);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("setne %al\n");
+                this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
             case '>':{
-                int i = this -> newlabel();
-                int j = this -> newlabel();
-                this -> emit("cmpl %eax,[%esp]\n");
-                this -> emitjmp(12,JNGO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMPO);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("cmpl %eax,(%esp)\n");
+                this -> emit("setg %al\n");
+                this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
             case '<':{
-                int i = this -> newlabel();
-                int j = this -> newlabel();
-                this -> emit("cmpl %eax,[%esp]\n");
-                this -> emitjmp(12,JGEO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMPO);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("cmpl %eax,(%esp)\n");
+                this -> emit("setl %al\n");
+                this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
             case lexer::tag::LE:{
-                int i = this -> newlabel();
-                int j = this -> newlabel();
-                this -> emit("cmpl %eax,[%esp]\n");
-                this -> emitjmp(12,JGO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMP);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("cmpl %eax,(%esp)\n");
+                this -> emit("setle %al\n");
+                this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
             case lexer::tag::GE:
-                int i = this -> newlabel();
-                int j = this -> newlabel();
-                this -> emit("cmpl %eax,[%esp]\n");
-                this -> emitjmp(12,JLO);
-                this -> emit("movl $1,%eax\n");
-                this -> emitjmp(4,JMPO);
-                this -> emit("movl $0,%eax\n");
+                this -> emit("cmpl %eax,(%esp)\n");
+                this -> emit("setge %al\n");
+                this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
         }
     };//struct arith
 
-    struct unary:public op{
+    struct unary:public OP{
         expr* e;
-        
+
         void gen()const
         {
             e -> gen();
@@ -138,15 +114,15 @@ namespace inter{
                 break;
             }
             case lexer::tag::INC:{
-                this -> emit("movl [%ebx],%eax\n");
+                this -> emit("movl (%ebx),%eax\n");
                 this -> emit("incl %eax\n");
-                this -> emit("movl %eax,[%ebx]\n");
+                this -> emit("movl %eax,(%ebx)\n");
                 break;
             }
             case lexer::tag::DEC:{
-                this -> emit("movl [%ebx],%eax\n");
+                this -> emit("movl (%ebx),%eax\n");
                 this -> emit("decl %eax\n");
-                this -> emit("movl %eax,[%ebx]\n");
+                this -> emit("movl %eax,(%ebx)\n");
                 break;
             }
             }
@@ -155,6 +131,8 @@ namespace inter{
     };//struct unary
 
     struct constant:public expr{
+        constant()
+        :expr(NULL,symbols::int_){}
         void gen()const
         {
            int value = static_cast<lexer::num*>(expr::op) -> value;
@@ -163,7 +141,7 @@ namespace inter{
 
     };//struct constant
 
-    struct logical:public op{
+    struct logical:public OP{
         expr* e1;
         expr* e2;
     };//struct logical
@@ -183,7 +161,7 @@ namespace inter{
     };//struct and_
 
     struct or_:public logical{
-    
+
         void gen()const
         {
             int l1 = this -> newlabel();
@@ -206,6 +184,8 @@ namespace inter{
 
     struct postfix:public expr{
         expr* e;
+        postfix()
+        :expr(NULL,symbols::int_){}
         void gen()const
         {
             e -> gen();
