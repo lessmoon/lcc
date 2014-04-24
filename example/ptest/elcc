@@ -1,0 +1,33 @@
+#!/bin/bash
+
+xsource=""
+target_code="a.s"
+target_err="a.error.info"
+lcc="./lcc"
+is_bin=true
+
+while [[ $# -gt 0 ]]; do
+    if [[ $1 == -o ]]; then
+        shift
+        target_code=$1
+    elif [[ $1 == -e ]]; then
+        shift
+        target_err=$1
+    elif [[ $1 == -s ]]; then
+        is_bin=false
+    else
+        xsource=$1;
+    fi
+    shift
+done
+
+if [[ $xsource == "" ]]; then
+    printf "No source code found!\n"
+else
+    cat $xsource | $lcc 1>$target_code 2>$target_err
+    if $is_bin; then
+        gcc $target_code -m32 -o $target_code.out
+        rm $target_code $target_err
+    fi
+fi
+exit
