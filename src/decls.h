@@ -26,13 +26,14 @@ namespace inter{
         int offset;
         void gen(tok_ptr t)
         {
-            offset = node::esp_offset;
+            offset = node::esp_offset + 4;
             if(init != NULL){
                 init -> gen();
                 this -> emitpush("%eax");
             }else{
                 this -> emitstack(-4);
             }
+
         }
 
         id* produce(lexer::token* t)const
@@ -53,7 +54,7 @@ namespace inter{
         {
             int i = 0;
             int sz = size -> value;
-            offset = node::esp_offset;
+            offset = node::esp_offset + 4;
 
             if(initlist != NULL)
                 if(initlist -> size() > sz)
@@ -73,7 +74,6 @@ namespace inter{
             return new id(name,arr,offset);
         }
     };//struct arr_decl
-
 
     struct idlist:public node{
 

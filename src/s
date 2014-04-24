@@ -3,11 +3,10 @@
      selection,
      iteration,
      init_list,stmts,stmt,expr,bool_,join,equality,rel,add,term_,unary,postfix,factor;
-#term LCB,RCB,LSB,RSB,COMMA,SEM,
-     ID,BREAK,
+#term LCB,RCB,LSB,RSB,COMMA,SEM,ID,
      BASIC,NUM,IF,ELSE,FOR,DO,WHILE,REAL,TRUE,FALSE,LB,RB,
      INC,DEC,PLUS,MIN,DIV,MULT,
-     ASS,OR,AND,GT,GE,NE,EQ,LS,LE,NOT;
+     ASS,OR,AND,GT,GE,NE,EQ,LS,LE,NOT,PRINTF_FUNC,STR,RETURN;
 
 !program = block ;
 !block   = LCB decls stmts RCB;
@@ -21,7 +20,6 @@
 !stmts = stmts stmt | %;
 !stmt  = selection
         | iteration
-        | BREAK SEM
         | block
         | expr SEM ;
 
@@ -32,16 +30,17 @@
 !selection =  IF LB expr RB stmt
             | IF LB expr RB stmt ELSE stmt;
 
-!factor = ID|NUM|LB expr RB;//May be string here
+!factor = ID|NUM|LB expr RB|STR;
 !postfix = factor | factor LSB expr RSB | factor INC | factor DEC;
 !unary = postfix | NOT unary | MIN unary|INC unary|DEC unary;
 !term_ = term_ MULT unary|term_ DIV unary | unary;
-!add  = add PLUS term_ | add MIN term_ | term_;
-!rel = rel GT add|rel LS add|rel GT add|rel LE add|add;
+!add   = add PLUS term_ | add MIN term_ | term_;
+!rel   = rel GE add|rel LS add|rel GT add|rel LE add|add;
 !equality = equality EQ rel | equality NE rel |rel;
-!join = join AND equality | equality;
+!join  = join AND equality | equality;
 !bool_ = bool_ OR join | join;
-!expr = unary ASS expr | bool_;
-
+!expr  = unary ASS expr | bool_;
+!stmt  = PRINTF_FUNC LB init_list RB SEM
+        |RETURN SEM;
 *program;
 7

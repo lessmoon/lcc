@@ -21,37 +21,37 @@ namespace inter{
     {
         switch(t){
         case JMP:
-            std::cout<<"jmp _LCC_"<<l<<"\n";
+            std::cout<<"jmp ._LCC_"<<l<<"\n";
             break;
         case JZ:
-            std::cout<<"jz _LCC_"<<l<<"\n";
+            std::cout<<"jz ._LCC_"<<l<<"\n";
             break;
         case JNZ:
-            std::cout<<"jnz _LCC_"<<l<<"\n";
+            std::cout<<"jnz ._LCC_"<<l<<"\n";
             break;
         case JE:
-            std::cout<<"je _LCC_"<<l<<"\n";
+            std::cout<<"je ._LCC_"<<l<<"\n";
             break;
         case JNE:
-            std::cout<<"jne _LCC_"<<l<<"\n";
+            std::cout<<"jne ._LCC_"<<l<<"\n";
             break;
         case JL:
-            std::cout<<"jl _LCC_"<<l<<"\n";
+            std::cout<<"jl ._LCC_"<<l<<"\n";
             break;
         case JNL:
-            std::cout<<"jnl _LCC_"<<l<<"\n";
+            std::cout<<"jnl ._LCC_"<<l<<"\n";
             break;
         case JLE:
-            std::cout<<"jle _LCC_"<<l<<"\n";
+            std::cout<<"jle ._LCC_"<<l<<"\n";
             break;
         case JG:
-            std::cout<<"jg _LCC_"<<l<<"\n";
+            std::cout<<"jg ._LCC_"<<l<<"\n";
             break;
         case JGE:
-            std::cout<<"jge _LCC_"<<l<<"\n";
+            std::cout<<"jge ._LCC_"<<l<<"\n";
             break;
         case JNG:
-            std::cout<<"jng _LCC_"<<l<<"\n";
+            std::cout<<"jng ._LCC_"<<l<<"\n";
             break;
         case JMPO:
             std::cout<<"jmp $.+"<<l<<"\n";
@@ -104,7 +104,12 @@ namespace inter{
     void node::emitstack(const int sz)const
     {
         std::cout<<"addl $"<<sz<<",%esp\n";
-        esp_offset += sz;
+        esp_offset -= sz;
+    }
+
+    void node::mvlabelto(const int l,const string&d)const
+    {
+        std::cout<<"movl $._LCC_" <<l<<","<<d<<"\n";
     }
 
     int node::esp_offset = 0;

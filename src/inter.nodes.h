@@ -3,8 +3,10 @@
 
 #include"node.h"
 #include"expr.h"
-
 #include"stmt.h"
+#include"decls.h"
+
+#include<vector>
 
 namespace inter{
 
@@ -13,6 +15,10 @@ namespace inter{
             expr* e1;expr* c;expr* e2;
             stmt* s;
         public:
+            for_()
+            {
+
+            }
             for_(expr* e1,expr* c,expr* e2,stmt* s)
             :e1(e1),c(c),e2(e2),s(s)
             {}
@@ -28,14 +34,13 @@ namespace inter{
                 e1 -> gen();
                 this -> emitlabel(lc);
                 c -> gen();
-                this -> emitjmp(lend,JNZ);
-                this -> emitjmp(ls,JMP);
-                this -> emitlabel(le2);
-                this -> emitjmp(lend,JMP);
-                e2 -> gen();
+                this -> emit("cmpl $0,%eax\n");
+                this -> emitjmp(lend,JZ);
                 this -> emitlabel(ls);
                 s -> gen();
-                this -> emitjmp(le2,JMP);
+                this -> emitlabel(le2);
+                e2 -> gen();
+                this -> emitjmp(lc,JMP);
                 this -> emitlabel(lend);
             }
 
@@ -53,9 +58,11 @@ namespace inter{
                 int lse = this -> newlabel();
                 this -> emitlabel(lc);
                 c -> gen();
+                this -> emit("cmpl $0,%eax\n");
                 this -> emitjmp(lse,JZ);
                 this -> emitlabel(ls);
                 s -> gen();
+                this -> emitjmp(lc,JMP);
                 this -> emitlabel(lse);
             }
 
@@ -74,6 +81,7 @@ namespace inter{
                 s -> gen();
                 this -> emitlabel(lc);
                 c -> gen();
+                this -> emit("cmpl $0,%eax\n");
                 this -> emitjmp( ls,JNZ);
             }
     };//struct dowhile
@@ -89,6 +97,7 @@ namespace inter{
                 int se = this -> newlabel();
                 c -> gen();
                 this -> emitlabel(ce);
+                this -> emit("cmpl $0,%eax\n");
                 this -> emitjmp(se,JZ);
                 s -> gen();
                 this -> emitlabel(se);
@@ -123,7 +132,23 @@ namespace inter{
         {
             e -> gen();
         }
-    };
+    };//struct func_printf
+
+
+    struct func_printf:public stmt{
+        std::vector<expr*>* paralist;
+
+        void gen()const
+        {
+            if(paralist)
+                for(int i = paralist -> size() - 1; i >= 0 ;i--){
+                    paralist -> at(i) -> gen();
+                    this -> emitpush("%eax");
+                }
+            this -> emit("call printf\n");
+            this -> emitstack(paralist -> size()*4);
+        }
+    };//struct func_printf
 };//namespace inter
 
 #endif //_INTER_NODES_H

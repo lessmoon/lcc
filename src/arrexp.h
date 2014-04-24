@@ -10,20 +10,21 @@ namespace inter{
         id*  i;
     public:
         arrexp(id*i,expr* e)
-        :i(i),idx(e),expr(NULL,symbols::int_)
+        :expr(NULL,symbols::int_),idx(e),i(i)
         {}
 
     public:
         void gen()const
         {
-            i ->gen();
+            i -> gen();
+            this -> emitpush("%ebx");
             idx -> gen();
-            std::cout<<"leal (%ebx,%eax,4),%ebx\n"
+            this -> emitpop("%ebx");
+            std::cout<<"negl %eax\n"
+                     <<"leal (%ebx,%eax,4),%ebx\n"
                      <<"movl (%ebx),%eax\n";
         }
-
     };//class expr
-
 };//namespace inter
 
 #endif//_ARR_EXPR_H

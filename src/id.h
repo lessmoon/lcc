@@ -15,15 +15,15 @@ namespace inter{
             typedef word*       word_ptr;
 
         public:
-             int offset;
+             const int&offset;
         public:
-             id(word_ptr i,type_ptr p,const int b)
+             id(word_ptr i,type_ptr p,const int&b)
              :expr(i,p),offset(b)
              {}
 
             void gen()const
             {
-                std::cout<<"leal "<<(offset - node::esp_offset)<<"(%esp),%ebx\n";
+                std::cout<<"leal "<<(node::esp_offset - offset)<<"(%esp),%ebx\n";
                 std::cout<<"movl (%ebx),%eax\n";
             }
     };//class id

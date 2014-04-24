@@ -20,8 +20,12 @@ namespace inter{
         void gen()const
         {
             e1 -> gen();
-            this -> emitpush("%eax");
+            if(expr::op -> tag == '=')/*assignment use %ebx as the target address*/
+                this -> emitpush("%ebx");
+            else
+                this -> emitpush("%eax");
             e2 -> gen();
+
             switch(expr::op -> tag){
             case '+':{
                 this -> emit("addl (%esp),%eax\n");
@@ -29,8 +33,9 @@ namespace inter{
                 break;
             }
             case '-':{
-                this -> emitpop("%ebx");
-                this -> emit("subl %ebx,%eax\n");
+                this -> emitpop("%ecx");
+                this -> emit("subl %eax,%ecx\n");
+                this -> emit("movl %ecx,%eax\n");
                 break;
             }
             case '*':{
@@ -39,20 +44,18 @@ namespace inter{
                 break;
             }
             case '/':{
-                this -> emit("movl $0,%edx\n");
-                this -> emit("movl $eax,$ebx\n");
-                this -> emit("movl (%esp),$eax\n");
+                this -> emit("xorl %edx,%edx\n");
+                this -> emit("movl %eax,%ebx\n");
+                this -> emitpop("%eax");
                 this -> emit("divl %ebx\n");
-                this -> emitstack(4);
                 break;
             }
             case '%':{
-                this -> emit("movl $0,%edx\n");
-                this -> emit("movl $eax,$ebx\n");
-                this -> emit("movl (%esp),$eax\n");
+                this -> emit("xorl %edx,%edx\n");
+                this -> emit("movl $eax,%ebx\n");
+                this -> emitpop("%eax");
                 this -> emit("divl %ebx\n");
                 this -> emit("movl %edx,%eax\n");
-                this -> emitstack(4);
                 break;
             }
             case lexer::tag::EQ:{
@@ -89,13 +92,21 @@ namespace inter{
                 this -> emitstack(4);
                 break;
             }
-            case lexer::tag::GE:
+            case lexer::tag::GE:{
                 this -> emit("cmpl %eax,(%esp)\n");
                 this -> emit("setge %al\n");
                 this -> emit("movzbl %al,%eax\n");
                 this -> emitstack(4);
                 break;
             }
+            case '=':{
+                this -> emit("movl (%esp),%ebx\n");
+                this -> emit("movl %eax,(%ebx)\n");
+                this -> emitstack(4);
+                break;
+            }
+            }
+
         }
     };//struct arith
 
@@ -198,7 +209,7 @@ namespace inter{
             }
             case lexer::tag::DEC:{
                 this -> emit("movl %eax,%ecx\n");
-                this -> emit("incl %ecx\n");
+                this -> emit("decl %ecx\n");
                 this -> emit("movl %ecx,(%ebx)\n");
                 break;
             }

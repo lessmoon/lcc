@@ -1,22 +1,28 @@
-OBJS = lexer.o reserved.o parser.test.o kb_io.o file_io.o token_storage.o\
-        parser.o  
+OBJS = lexer.o reserved.o main.o kb_io.o file_io.o token_storage.o\
+        parser.o  env.o node.o
 
 CPPC = g++ -c
 
-LD   = g++ -O3
+LD   = g++  
 
-CPPFLAGS = -O3
+CPPFLAGS =  
 
-TAR = test
+TAR = lcc
 
 all:$(OBJS)
 	$(LD) $(OBJS) -o $(TAR)
 
-parser.test.o:parser.test.cpp parser.h
-	$(CPPC) $(CPPFLAGS) parser.test.cpp
+main.o:main.cpp parser.h kb_io.h
+	$(CPPC) $(CPPFLAGS) main.cpp
 
 parser.o:parser.cpp parser.h
 	$(CPPC) $(CPPFLAGS) parser.cpp
+
+env.o: env.cpp env.h
+	$(CPPC) $(CPPFLAGS) env.cpp
+
+node.o:node.cpp node.h
+	$(CPPC) $(CPPFLAGS) node.cpp
 
 lexer.o:lexer.cpp reserved.o token_storage.o lexer.h real.h num.h\
         tag.h type.h\
@@ -31,9 +37,6 @@ kb_io.o:kb_io.cpp kb_io.h iol.h
 
 file_io.o:file_io.cpp iol.h
 	$(CPPC) $(CPPFLAGS) file_io.cpp
-
-lexertest.o:lexertest.cpp lexer.o reserved.o kb_io.o
-	$(CPPC) $(CPPFLAGS) lexertest.cpp
 
 token_storage.o:token_storage.cpp token_storage.h token.h
 	$(CPPC) $(CPPFLAGS) token_storage.cpp

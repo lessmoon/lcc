@@ -18,10 +18,12 @@ struct block:public stmt{
     public:
         void gen()const
         {
+            int savedesp = node::esp_offset;
             if(ds)
                 ds -> gen();
             if(ss)
                 ss -> gen();
+            this -> emitstack(node::esp_offset - savedesp);
         }
 };//struct block
 };//namespace inter

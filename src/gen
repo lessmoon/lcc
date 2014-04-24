@@ -1,8 +1,8 @@
 #!/bin/bash
 
-xsource="testcase/s"
-target_code="testcase/code.cpp"
-target_err="testcase/err.info"
+xsource=""
+target_code="s.code.cpp"
+target_err="s.error.info"
 mycc="./mycc"
 
 while [[ $# -gt 0 ]]; do
@@ -19,7 +19,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-cat $xsource | $mycc 1>$target_code 2>$target_err
-
-printf "Finished!\n"
+if [[ $xsource == "" ]]; then
+    printf "No source code found!\n"
+else
+    cat $xsource | $mycc 1>$target_code 2>$target_err
+    printf "Finished!\n"
+fi
 exit

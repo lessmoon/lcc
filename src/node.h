@@ -37,6 +37,7 @@ namespace inter{
         virtual void emitstack(const int size)const;
         virtual void emit(const string&s)const;
         virtual void emitjmp(const int l,const int type)const;
+        virtual void mvlabelto(const int l,const string&d)const;
     };//class node
 };//namespace symbols
 
