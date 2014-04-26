@@ -44,23 +44,29 @@ namespace cctabgen{
         item_list I0;
 
         item tmp(0,-1,NULL,END_SYM);
-        /*Wrong!*/
+        std::vector<right*> dcltor; //collector the garbage
+        
         for(sym_set::iterator iter = str_sym -> begin();
             iter != str_sym -> end();
             iter++){
             /*TODO:collect the right created here*/
             right* temp = new right;
+            dcltor.push_back(temp);
             try{
                 temp -> add(*iter);
                 tmp.set(0,-1,temp,END_SYM);
                 I0.add(tmp);
             }catch(...){
-                delete temp;
+                for(int i = 0; i < dcltor.size();i++)
+                    delete (dcltor.at(i));
                 throw ;
             }
         }
         closure(I0);
         this -> closure_set(I0);
+        for(int i = 0; i < dcltor.size();i++)
+               delete (dcltor.at(i));
+
         return &srtable;
 #undef  END_SYM
     }

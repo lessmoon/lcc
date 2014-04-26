@@ -32,13 +32,14 @@ namespace ccparser{
     public:
         const string&get_name(const sym_t s)
         {
+            const static string res = "";
             iterator iter = def_table.begin();
             while(iter != def_table.end()){
                 if(iter -> second == s)
                     return iter -> first;
                 iter++;
             }
-            return "";//Not found!TODO not safe!
+            return res;//just for safety we use const static string
         }
 
         const prod_t&get_prod(const int idx)const

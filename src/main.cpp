@@ -12,30 +12,6 @@ using namespace cctabgen;
 
 using namespace std;
 
-
-ostream&operator<<(ostream&os,cctabgen::action_node&x)
-{
-    os<<(x.t == cctabgen::ERROR?'E'
-        :(x.t == cctabgen::SHIFT)?'S'
-        :(x.t == cctabgen::JUSTGO)?'\0'
-        :'R')<<x.where;
-}
-
-void prt_right(cctype::right* r)
-{
-    for(int i = 0;i < r -> size();i++)
-        cout<< r -> at(i)<<"\t";
-}
-
-void print_rl(cctype::rightlist*rl)
-{
-    for(int i = 0;i < rl -> size();i++){
-        cout<<"\t\t";
-        prt_right(rl -> at(i));
-        cout<<"\n";
-    }
-}
-
 int main()
 {
     tabgen tg;
@@ -44,22 +20,28 @@ int main()
     cccodegen::codegen*cg = new cccodegen::codegen;
     lexer::lexer* z = new lexer::lexer(io);
     parser p(z);
-    ccparser::result::prods*zp;
     ccparser::result*res;
-    try{
-        res = p.stmts();
-        zp = &(res->productions);
-        tg.set_para(res);
-    }catch(std::string&e){
-        std::cerr<<"At line "<<z -> lineno<<":"<<e<<std::endl;
-    }
-    try{
-        tab = tg.calculate();
-    }catch(std::string&e){
-        std::cerr<<e<<std::endl;
-    }
-    cg -> set_para(res,tab);
-    cg -> gen_code();
+    
+    do{
+        try{
+            res = p.stmts();
+        }catch(std::string&e){
+            std::cerr<<"At line "<<z -> lineno<<":"<<e<<std::endl;
+        }
+        try{
+            tg.set_para(res);
+            tab = tg.calculate();
+        }catch(std::string&e){
+            std::cerr<<e<<std::endl;
+            break;
+        }
+        try{
+            cg -> set_para(res,tab);
+            cg -> gen_code();
+        }catch(...){
+            
+        }
+    }while(false);
     delete cg;
     delete z;
     delete io;
