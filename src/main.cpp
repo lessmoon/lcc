@@ -27,7 +27,8 @@ int main()
             res = p.stmts();
         }catch(std::string&e){
             std::cerr<<"At line "<<z -> lineno<<":"<<e<<std::endl;
-        }
+	    break;
+	}
         try{
             tg.set_para(res);
             tab = tg.calculate();
