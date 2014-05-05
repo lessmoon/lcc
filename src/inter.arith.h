@@ -164,7 +164,7 @@ namespace inter{
             int l2 = this -> newlabel();
             e1 -> gen();
             this -> emitlabel(l1);
-            this -> emit("cmpl %eax,$0\n");
+            this -> emit("cmpl $0,%eax\n");
             this -> emitjmp(l2,JZ);
             e2 -> gen();
             this -> emitlabel(l2);
@@ -179,7 +179,7 @@ namespace inter{
             int l2 = this -> newlabel();
             e1 -> gen();
             this -> emitlabel(l1);
-            this -> emit("cmpl %eax,$0\n");
+            this -> emit("cmpl $0,%eax\n");
             this -> emitjmp(l2,JNZ);
             e2 -> gen();
             this -> emitlabel(l2);

@@ -741,6 +741,7 @@ class parser {
                 }
             default:
                 {
+                    std::cerr<<"At line "<<lexer::lexer::lineno<<":";
                     error("Syntax error");
                 }
             }

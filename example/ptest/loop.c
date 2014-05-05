@@ -17,18 +17,19 @@ int main()
     j = 10;
     while(j > 0){
 	factor = factor * j;
-        j --;
+        j--;
     }
     printf("while:factor = %d\n",factor);
 
     /*do while test*/
     k = 100;
     do{
-   	if(k % 2 == 0){
+   	    if(k/2 == (k+1)/2){//k/2 == (k+1)/2 = k%2 == 0
            sum2 = sum2 + k;
-	}
+	    }
         k --;
     }while(k > 0 );
     printf("do while:sum2 = %d\n",sum2);
+
     return 0;
 }

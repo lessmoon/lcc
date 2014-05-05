@@ -116,6 +116,7 @@ namespace inter{
                 int l1 = this -> newlabel();
                 int l2 = this -> newlabel();
                 c -> gen();
+                this -> emit("cmpl $0,%eax\n");
                 this -> emitjmp(l1,JZ);
                 strue -> gen();
                 this -> emitjmp(l2,JMP);

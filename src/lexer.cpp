@@ -46,6 +46,7 @@ namespace lexer{
         this -> reserve(new word("else",tag::ELSE));
         this -> reserve(new word("while",tag::WHILE));
         this -> reserve(new word("for",tag::FOR));
+        this -> reserve(new word("do",tag::DO));
         this -> reserve(new word("break",tag::BREAK));
         this -> reserve(new word("printf",tag::PRINTF_FUNC));
         this -> reserve(new word("return",tag::RETURN));
