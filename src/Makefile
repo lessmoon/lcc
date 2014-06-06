@@ -7,7 +7,7 @@ CPPC = g++ -c -O3
 
 LD   = g++ -O3
 
-CPPFLAGS =  
+CPPFLAGS = -DLALR #or -DLR_1
 
 TAR = mycc
 

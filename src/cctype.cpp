@@ -135,7 +135,13 @@ namespace cctype{
 
     bool item::operator==(const item&i)const
     {
+#if defined LR_1
+#warning(LR_1 is defined)
         return (now == i.now)&&(l == i.l)&&(this -> a == i.a)&&(*r == (*i.r));
+#elif defined LALR
+#warning(LALR is defined)
+        return (now == i.now)&&(l == i.l)&&(*r  == (*i.r));
+#endif
     }
 
     sym_t item::at(const int idx)const
