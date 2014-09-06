@@ -114,7 +114,7 @@ namespace lexer{
                     lineno++;
                 }
                 else
-                    return new token('/');
+                    return store(new token('/'));
             else
                 break;
         }
